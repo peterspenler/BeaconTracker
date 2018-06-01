@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
+import android.view.View;
 import android.widget.Toast;
 
 import java.util.Calendar;
@@ -21,9 +22,20 @@ public class MapView extends android.support.v7.widget.AppCompatImageView {
 
     private PointManager p;
     private Paint pointPaint = new Paint();
+    private Paint textPaint = new Paint();
+    private Paint mapPaint = new Paint();
+
+    private int screenHeight;
+    private int screenWidth;
 
     public MapView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        pointPaint.setColor(getResources().getColor(R.color.colorAccent));
+        textPaint.setColor(getResources().getColor(R.color.colorPrimaryDark));
+        mapPaint.setColor(getResources().getColor(R.color.background));
+
+        screenHeight = App.getScreenHeight();
+        screenWidth = App.getScreenWidth();
 
         this.context = context;
     }
@@ -31,10 +43,10 @@ public class MapView extends android.support.v7.widget.AppCompatImageView {
     @Override
     public void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        pointPaint.setColor(getResources().getColor(R.color.colorAccent));
         canvas.save();
-        for (int i = 0; i < p.numPoints(); i++) {
+        for (int i = 0; i < p.numPoints(); i++){
             canvas.drawCircle(p.getPoint(i).x, p.getPoint(i).y, 10, pointPaint);
+            canvas.drawText(Integer.toString(i), p.getPoint(i).x, p.getPoint(i).y, textPaint);
         }
         canvas.restore();
     }
@@ -62,9 +74,7 @@ public class MapView extends android.support.v7.widget.AppCompatImageView {
                         }
                     }
 
-                    if(closeID == -1){
-                        MainActivity.addPointDialog(xPos, yPos);
-                    }else{
+                    if(closeID != -1){
                         Toast.makeText(context, "Existing Point", Toast.LENGTH_SHORT).show();
                     }
                 }

@@ -3,6 +3,7 @@ package ca.uoguelph.pspenler.beacontracker;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -16,15 +17,38 @@ public final class MainActivity extends AppCompatActivity {
     private static Context context;
     private static Activity activity;
 
+    private FloatingActionButton fab;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         context = getApplicationContext();
         activity = this;
+
+        fab = findViewById(R.id.addPointFab);
+        fab.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                AlertDialog dialog = new AlertDialog.Builder(activity, R.style.ThemeOverlay_AppCompat_Dialog_Alert)
+                        .setMessage("Finish adding points?")
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                PointManager.donePoints();
+                                fab.setVisibility(View.INVISIBLE);
+                                Toast.makeText(context, "Finished adding points", Toast.LENGTH_SHORT).show();
+                            }
+                        })
+                        .setNegativeButton("No", null)
+                        .create();
+                dialog.show();
+                return true;
+            }
+        });
     }
 
-    protected static void addPointDialog(final float screenX, final float screenY){
+    public static void addPointDialog(View view){
         final AlertDialog dialog = new AlertDialog.Builder(activity, R.style.Theme_AppCompat_Dialog_Alert)
                 .setView(R.layout.dialog_add_point)
                 .setPositiveButton(android.R.string.ok, null) //Set to null. We override the onclick
@@ -38,14 +62,14 @@ public final class MainActivity extends AppCompatActivity {
 
                 Button button = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
                 final EditText xText = dialog.findViewById(R.id.dialogXValue);
-                EditText yText = dialog.findViewById(R.id.dialogYValue);
+                final EditText yText = dialog.findViewById(R.id.dialogYValue);
                 button.setOnClickListener(new View.OnClickListener() {
 
                     @Override
                     public void onClick(View view) {
                         // TODO Do something
                         try {
-                            if (PointManager.addPoint(screenX, screenY, Float.parseFloat(xText.getText().toString()), Float.parseFloat(xText.getText().toString()))) {
+                            if (PointManager.addPoint(Float.parseFloat(xText.getText().toString()), Float.parseFloat(yText.getText().toString()))) {
                                 Toast.makeText(activity, "Point added", Toast.LENGTH_SHORT).show();
                                 dialog.dismiss();
                             } else {
@@ -54,8 +78,6 @@ public final class MainActivity extends AppCompatActivity {
                         }catch (NumberFormatException nfe){
                             Toast.makeText(activity, "Values must be decimal numbers", Toast.LENGTH_SHORT).show();
                         }
-                        //Dismiss once everything is OK.
-                        //dialog.dismiss();
                     }
                 });
             }
