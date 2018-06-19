@@ -46,7 +46,7 @@ public class MapView extends android.support.v7.widget.AppCompatImageView {
         canvas.save();
         for (int i = 0; i < p.numPoints(); i++){
             canvas.drawCircle(p.getPoint(i).x, p.getPoint(i).y, 10, pointPaint);
-            canvas.drawText(Integer.toString(i), p.getPoint(i).x, p.getPoint(i).y, textPaint);
+            canvas.drawText(Integer.toString(BeaconManager.getRSSI(PointManager.getPoint(i).device)), p.getPoint(i).x, p.getPoint(i).y, textPaint);
         }
         canvas.restore();
     }
@@ -76,6 +76,7 @@ public class MapView extends android.support.v7.widget.AppCompatImageView {
 
                     if(closeID != -1){
                         Toast.makeText(context, "Existing Point", Toast.LENGTH_SHORT).show();
+                        ((MainActivity)context).pointDialog(true, closeID);
                     }
                 }
                 break;
