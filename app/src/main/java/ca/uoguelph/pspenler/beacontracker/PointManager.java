@@ -1,7 +1,5 @@
 package ca.uoguelph.pspenler.beacontracker;
 
-import android.util.DisplayMetrics;
-
 import java.util.ArrayList;
 
 class Point{
@@ -9,12 +7,14 @@ class Point{
       float y;
       float realX;
       float realY;
+      int device;
 
-      Point(float realX, float realY){
+      Point(float realX, float realY, int device){
           this.x = -1;
           this.y = -1;
           this.realX = realX;
           this.realY = realY;
+          this.device = device;
       }
 }
 
@@ -40,10 +40,21 @@ public final class PointManager {
         return points.size();
     }
 
-    public static boolean addPoint(float realX, float realY){
+    public static boolean addPoint(float realX, float realY, int device){
         if(canAddPoints) {
-            points.add(new Point(realX, realY));
-            remapPoints();
+            points.add(new Point(realX, realY, device));
+            remapPoints(false);
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean changePoint(float realX, float realY, int device, int i){
+        if(canAddPoints){
+            points.get(i).realX = realX;
+            points.get(i).realY = realY;
+            points.get(i).device = device;
+            remapPoints(true);
             return true;
         }
         return false;
@@ -57,7 +68,7 @@ public final class PointManager {
         return canAddPoints;
     }
 
-    private static void remapPoints(){
+    private static void remapPoints(boolean change){
         int i;
         height = App.getScreenHeight();
         width = App.getScreenWidth();
@@ -66,6 +77,13 @@ public final class PointManager {
             points.get(0).x = width / 2;
             points.get(0).y = height / 2;
             return;
+        }
+
+        if(change){
+            maxStart = Float.MAX_VALUE;
+            maxEnd = Float.MIN_VALUE;
+            maxTop = Float.MAX_VALUE;
+            maxBottom = Float.MIN_VALUE;
         }
 
         for(i = 0; i < points.size(); i++){
@@ -86,5 +104,17 @@ public final class PointManager {
             points.get(i).x = 50 + (factorX * (points.get(i).realX - maxStart));
             points.get(i).y = 50 + (factorY * (points.get(i).realY - maxTop));
         }
+    }
+
+    public static int findXFromRealX(float realX){
+        return (int)(50 + (factorX * (realX - maxStart)));
+    }
+
+    public static int findYFromRealY(float realY){
+        return (int)(50 + (factorY * (realY - maxTop)));
+    }
+
+    public void setPointDevice(int i, int device){
+        points.get(i).device = device;
     }
 }

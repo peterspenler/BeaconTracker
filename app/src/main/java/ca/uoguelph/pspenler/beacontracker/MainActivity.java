@@ -2,6 +2,7 @@ package ca.uoguelph.pspenler.beacontracker;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -10,9 +11,16 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public final class MainActivity extends AppCompatActivity {
 
@@ -51,8 +59,12 @@ public final class MainActivity extends AppCompatActivity {
         BeaconManager.initialize(context, activity);
     }
 
-    public static void addPointDialog(View view){
-        final AlertDialog dialog = new AlertDialog.Builder(activity, R.style.Theme_AppCompat_Dialog_Alert)
+    public void addPointDialog(View view){
+        pointDialog(false, -1);
+    }
+
+    public void pointDialog(final boolean changing, final int index){
+        final AlertDialog dialog = new AlertDialog.Builder(this, R.style.Theme_AppCompat_Dialog_Alert)
                 .setView(R.layout.dialog_add_point)
                 .setPositiveButton(android.R.string.ok, null) //Set to null. We override the onclick
                 .setNegativeButton(android.R.string.cancel, null)
@@ -66,16 +78,63 @@ public final class MainActivity extends AppCompatActivity {
                 Button button = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
                 final EditText xText = dialog.findViewById(R.id.dialogXValue);
                 final EditText yText = dialog.findViewById(R.id.dialogYValue);
-                button.setOnClickListener(new View.OnClickListener() {
+                final Spinner btSpinner = dialog.findViewById(R.id.bluetoothDeviceSpinner);
+                final TextView rssiView = dialog.findViewById(R.id.rssiText);
+
+                //BeaconManager.stopScanning();
+
+                List<String> categories = new ArrayList<String>();
+                if(BeaconManager.getmDevices() != null){
+                    for(int i = 0; i < BeaconManager.getmDevices().size(); i++){
+                        categories.add(BeaconManager.getmDevices().valueAt(i).getAddress());
+                    }
+                }
+                ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(context, R.layout.spinner_item, categories);
+                dataAdapter.setDropDownViewResource(R.layout.spinner_item);
+                btSpinner.setAdapter(dataAdapter);
+                btSpinner.setSelection(0);
+                btSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        assert rssiView != null;
+                        rssiView.setText("RSSI: " + BeaconManager.getRSSI(BeaconManager.getmDevices().valueAt(btSpinner.getSelectedItemPosition()).hashCode()));
+                    }
 
                     @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+
+                    }
+                });
+
+                if(changing){
+                    Point point = PointManager.getPoint(index);
+                    assert xText != null;
+                    assert yText != null;
+                    xText.setText(Float.toString(point.realX));
+                    yText.setText(Float.toString(point.realY));
+                    int spinnerIndex = BeaconManager.indexFromHash(PointManager.getPoint(index).device);
+                    if(spinnerIndex >= 0) {
+                        btSpinner.setSelection(spinnerIndex);
+                    }
+                }
+
+                button.setOnClickListener(new View.OnClickListener() {
+                    @Override
                     public void onClick(View view) {
-                        // TODO Do something
                         try {
-                            if (PointManager.addPoint(Float.parseFloat(xText.getText().toString()), Float.parseFloat(yText.getText().toString()))) {
+                            boolean result;
+                            if(changing){
+                                BluetoothDevice device = BeaconManager.getmDevices().valueAt(btSpinner.getSelectedItemPosition());
+                                result = PointManager.changePoint(Float.parseFloat(xText.getText().toString()), Float.parseFloat(yText.getText().toString()), device.hashCode(), index);
+                            }else{
+                                BluetoothDevice device = BeaconManager.getmDevices().valueAt(btSpinner.getSelectedItemPosition());
+                                result = PointManager.addPoint(Float.parseFloat(xText.getText().toString()), Float.parseFloat(yText.getText().toString()), device.hashCode());
+                            }
+
+                            if(result){
                                 Toast.makeText(activity, "Point added", Toast.LENGTH_SHORT).show();
                                 dialog.dismiss();
-                            } else {
+                            }else{
                                 Toast.makeText(activity, "Invalid values", Toast.LENGTH_SHORT).show();
                             }
                         }catch (NumberFormatException nfe){
