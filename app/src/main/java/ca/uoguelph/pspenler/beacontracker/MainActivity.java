@@ -1,8 +1,10 @@
 package ca.uoguelph.pspenler.beacontracker;
 
 import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -46,6 +48,7 @@ public final class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
+        BeaconManager.initialize(context, activity);
     }
 
     public static void addPointDialog(View view){
@@ -84,4 +87,34 @@ public final class MainActivity extends AppCompatActivity {
         });
         dialog.show();
     }
+
+    public void startBlueTooth() {
+        Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+        startActivityForResult(enableBtIntent, 1);
+    }
+
+    @Override
+    protected void onResume() {
+        BeaconManager.resumeScan();
+        super.onResume();
+    }
+
+    @Override
+    protected void onDestroy() {
+        BeaconManager.stopScanning();
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onPause() {
+        BeaconManager.stopScanning();
+        super.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        BeaconManager.stopScanning();
+        super.onStop();
+    }
+
 }
