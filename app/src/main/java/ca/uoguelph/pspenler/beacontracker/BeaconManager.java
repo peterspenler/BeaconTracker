@@ -6,9 +6,43 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.util.SparseArray;
-import android.util.SparseIntArray;
 
+import java.util.ArrayList;
 import java.util.Random;
+
+class Rssi{
+    ArrayList<Integer> rssis;
+    private int txPower;
+
+    public Rssi(int rssi, int txpwr){
+        rssis = new ArrayList<>(20);
+        rssis.add(rssi);
+        this.txPower = txpwr;
+    }
+
+    public void add(int rssi){
+        if(rssis.size() > 20){
+            rssis.remove(0);
+        }
+        rssis.add(rssi);
+    }
+
+    public void setTxPower(int txpwr){
+        this.txPower = txpwr;
+    }
+
+    public int txPower(){
+        return txPower;
+    }
+
+    public int value(){
+        int i, total = 0;
+        for(i = 0; i < rssis.size(); i++){
+            total += rssis.get(i);
+        }
+        return (total / i);
+    }
+}
 
 public final class BeaconManager{
 
@@ -18,7 +52,7 @@ public final class BeaconManager{
     private static BluetoothAdapter mBluetoothAdapter;
     private static boolean mScanning = true;
     private static SparseArray<BluetoothDevice> mDevices;
-    private static SparseIntArray mRssis;
+    private static SparseArray<Rssi> mRssis;
     private static Random rand = new Random();
 
     public static float getX(){
@@ -35,7 +69,7 @@ public final class BeaconManager{
         return mDevices;
     }
 
-    public static int getRSSI(int device){
+    public static Rssi getRSSI(int device){
         return mRssis.get(device);
     }
 
@@ -48,7 +82,7 @@ public final class BeaconManager{
         final BluetoothManager bluetoothManager = (BluetoothManager) c.getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
         mDevices = new SparseArray<>();
-        mRssis = new SparseIntArray();
+        mRssis = new SparseArray<>();
 
         if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
             ((MainActivity) a).startBlueTooth();
@@ -82,7 +116,11 @@ public final class BeaconManager{
         @Override
         public void onLeScan(final BluetoothDevice device, final int rssi, byte[] scanRecord) {
             mDevices.put(device.hashCode(), device);
-            mRssis.put(device.hashCode(), rssi);
+            byte txpwr = scanRecord[29];
+            if(mRssis.indexOfKey(device.hashCode()) < 0){
+                mRssis.put(device.hashCode(), new Rssi(rssi, (int)txpwr));
+            }
+            mRssis.get(device.hashCode()).add(rssi);
         }
     };
 

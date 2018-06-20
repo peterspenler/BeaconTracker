@@ -107,14 +107,90 @@ public final class PointManager {
     }
 
     public static int findXFromRealX(float realX){
-        return (int)(50 + (factorX * (realX - maxStart)));
+        int pos = (int)(50 + (factorX * (realX - maxStart)));
+        if(pos > (App.getScreenWidth() - 25))
+            return App.getScreenWidth() - 25;
+        if(pos < 25)
+            return 25;
+        return pos;
     }
 
     public static int findYFromRealY(float realY){
-        return (int)(50 + (factorY * (realY - maxTop)));
+        int pos = (int)(50 + (factorY * (realY - maxTop)));
+        if(pos > (App.getScreenHeight() - 25))
+            return App.getScreenHeight() - 25;
+        if(pos < 25)
+            return 25;
+        return pos;
     }
 
     public void setPointDevice(int i, int device){
         points.get(i).device = device;
+    }
+
+    private static double rssiToMeter(int rssi, int txPower){
+        //int txPower = -59;
+    /*
+        if(rssi == 0)
+            return -1;
+
+        float ratio = (float) rssi * (1/txPower);
+
+        if (ratio < 1.0) {
+            return Math.pow(ratio,10);
+        }
+        else {
+            double distance =  (0.89976) * Math.pow(ratio,7.7095) + 0.111;
+            return distance;
+        }*/
+        return Math.pow(10d, ((double) txPower - rssi) / (10 * 2));
+    }
+
+    public static float phoneX(){
+        if(points.size() < 3)
+            return 0;
+
+        double A, B, C, D, E, F, r1, r2, r3;
+
+        r1 = rssiToMeter(BeaconManager.getRSSI(points.get(0).device).value(), BeaconManager.getRSSI(points.get(0).device).txPower());
+        r2 = rssiToMeter(BeaconManager.getRSSI(points.get(1).device).value(), BeaconManager.getRSSI(points.get(1).device).txPower());
+        r3 = rssiToMeter(BeaconManager.getRSSI(points.get(2).device).value(), BeaconManager.getRSSI(points.get(2).device).txPower());
+
+        A = -2*points.get(0).realX + 2*points.get(1).realX;
+        B = -2*points.get(0).realY + 2*points.get(1).realY;
+        C = Math.pow(r1, 2) - Math.pow(r2, 2) - Math.pow(points.get(0).realX, 2)
+                + Math.pow(points.get(1).realX, 2) - Math.pow(points.get(0).realY, 2)
+                + Math.pow(points.get(1).realY, 2);
+        D = -2*points.get(1).realX + 2*points.get(2).realX;
+        E = -2*points.get(1).realY + 2*points.get(2).realY;
+        F = Math.pow(r2, 2) - Math.pow(r3, 2) - Math.pow(points.get(1).realX, 2)
+                + Math.pow(points.get(2).realX, 2) - Math.pow(points.get(1).realY, 2)
+                + Math.pow(points.get(2).realY, 2);
+
+        return (float) (((C*E) - (F*B))/((E*A) - (B*D)));
+    }
+
+    public static float phoneY(){
+        if(points.size() < 3)
+            return 0;
+
+        double A, B, C, D, E, F, r1, r2, r3;
+
+        r1 = rssiToMeter(BeaconManager.getRSSI(points.get(0).device).value(), BeaconManager.getRSSI(points.get(0).device).txPower());
+        r2 = rssiToMeter(BeaconManager.getRSSI(points.get(1).device).value(), BeaconManager.getRSSI(points.get(1).device).txPower());
+        r3 = rssiToMeter(BeaconManager.getRSSI(points.get(2).device).value(), BeaconManager.getRSSI(points.get(2).device).txPower());
+
+        A = -2*points.get(0).realX + 2*points.get(1).realX;
+        B = -2*points.get(0).realY + 2*points.get(1).realY;
+        C = Math.pow(r1, 2) - Math.pow(r2, 2) - Math.pow(points.get(0).realX, 2)
+                + Math.pow(points.get(1).realX, 2) - Math.pow(points.get(0).realY, 2)
+                + Math.pow(points.get(1).realY, 2);
+        D = -2*points.get(1).realX + 2*points.get(2).realX;
+        E = -2*points.get(1).realY + 2*points.get(2).realY;
+        F = Math.pow(r2, 2) - Math.pow(r3, 2) - Math.pow(points.get(1).realX, 2)
+                + Math.pow(points.get(2).realX, 2) - Math.pow(points.get(1).realY, 2)
+                + Math.pow(points.get(2).realY, 2);
+
+        return (float) (((C*D) - (F*A))/((B*D) - (A*E)));
     }
 }

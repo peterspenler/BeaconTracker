@@ -81,7 +81,7 @@ public final class MainActivity extends AppCompatActivity {
                 final Spinner btSpinner = dialog.findViewById(R.id.bluetoothDeviceSpinner);
                 final TextView rssiView = dialog.findViewById(R.id.rssiText);
 
-                //BeaconManager.stopScanning();
+                BeaconManager.stopScanning();
 
                 List<String> categories = new ArrayList<String>();
                 if(BeaconManager.getmDevices() != null){
@@ -97,7 +97,7 @@ public final class MainActivity extends AppCompatActivity {
                     @Override
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                         assert rssiView != null;
-                        rssiView.setText("RSSI: " + BeaconManager.getRSSI(BeaconManager.getmDevices().valueAt(btSpinner.getSelectedItemPosition()).hashCode()));
+                        rssiView.setText("RSSI: " + BeaconManager.getRSSI(BeaconManager.getmDevices().valueAt(btSpinner.getSelectedItemPosition()).hashCode()).value());
                     }
 
                     @Override
@@ -134,6 +134,7 @@ public final class MainActivity extends AppCompatActivity {
                             if(result){
                                 Toast.makeText(activity, "Point added", Toast.LENGTH_SHORT).show();
                                 dialog.dismiss();
+                                BeaconManager.resumeScan();
                             }else{
                                 Toast.makeText(activity, "Invalid values", Toast.LENGTH_SHORT).show();
                             }
