@@ -5,23 +5,24 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
+import android.util.Log;
 import android.util.SparseArray;
 
 import java.util.ArrayList;
 import java.util.Random;
 
 class Rssi{
-    ArrayList<Integer> rssis;
+    private ArrayList<Integer> rssis;
     private int txPower;
 
-    public Rssi(int rssi, int txpwr){
-        rssis = new ArrayList<>(20);
+    Rssi(int rssi, int txpwr){
+        rssis = new ArrayList<>(10);
         rssis.add(rssi);
         this.txPower = txpwr;
     }
 
     public void add(int rssi){
-        if(rssis.size() > 20){
+        if(rssis.size() >= 10){
             rssis.remove(0);
         }
         rssis.add(rssi);
@@ -115,12 +116,23 @@ public final class BeaconManager{
     private static BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
         @Override
         public void onLeScan(final BluetoothDevice device, final int rssi, byte[] scanRecord) {
-            mDevices.put(device.hashCode(), device);
-            byte txpwr = scanRecord[29];
-            if(mRssis.indexOfKey(device.hashCode()) < 0){
-                mRssis.put(device.hashCode(), new Rssi(rssi, (int)txpwr));
+            if (PointManager.canAddPoints()) {
+                if ((scanRecord[2] == 6) && (scanRecord[3] == 26)) {
+                    byte txpwr = scanRecord[29];
+                    mDevices.put(device.hashCode(), device);
+                    if (mRssis.indexOfKey(device.hashCode()) < 0) {
+                        mRssis.put(device.hashCode(), new Rssi(rssi, (int) txpwr));
+                    }
+                    mRssis.get(device.hashCode()).add(rssi);
+                }
+            }else{
+                for(int i = 0; i < PointManager.numPoints(); i++){
+                    if(PointManager.getPoint(i).device == device.hashCode()){
+                        Log.i("UPDATE", device.getAddress());
+                        mRssis.get(device.hashCode()).add(rssi);
+                    }
+                }
             }
-            mRssis.get(device.hashCode()).add(rssi);
         }
     };
 

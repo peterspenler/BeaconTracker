@@ -6,8 +6,6 @@ import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.view.View;
-import android.widget.Toast;
 
 import java.util.Calendar;
 
@@ -45,13 +43,8 @@ public class MapView extends android.support.v7.widget.AppCompatImageView {
             canvas.drawCircle(PointManager.getPoint(i).x, PointManager.getPoint(i).y, 10, pointPaint);
             canvas.drawText(Integer.toString(BeaconManager.getRSSI(PointManager.getPoint(i).device).value()), PointManager.getPoint(i).x, PointManager.getPoint(i).y, textPaint);
         }
-        count ++;
-        if(count > 100){
-            count = 0;
-            Log.e("PHONE-X", Integer.toString(phoneX));
-            Log.e("PHONE-Y", Integer.toString(phoneY));
-        }
-
+        canvas.drawText("X: " + Float.toString(PointManager.phoneX()), 10, 10, textPaint);
+        canvas.drawText("Y: " + Float.toString(PointManager.phoneY()), 10, 20, textPaint);
         canvas.restore();
         invalidate();
     }
@@ -81,7 +74,6 @@ public class MapView extends android.support.v7.widget.AppCompatImageView {
                     }
 
                     if(closeID != -1){
-                        Toast.makeText(context, "Existing Point", Toast.LENGTH_SHORT).show();
                         ((MainActivity)context).pointDialog(true, closeID);
                     }
                 }

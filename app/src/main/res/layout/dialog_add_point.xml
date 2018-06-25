@@ -2,41 +2,25 @@
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/dialogTitle"
-        android:text="Add Point"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_marginStart="10dp"
-        android:layout_marginEnd="10dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:paddingStart="26dp"
+    android:paddingEnd="26dp">
 
     <EditText
         android:id="@+id/dialogXValue"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="10dp"
-        android:layout_marginStart="10dp"
         android:hint="real x position"
         android:inputType="numberDecimal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/dialogTitle" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
         android:id="@+id/dialogYValue"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
-        android:layout_marginEnd="10dp"
-        android:layout_marginStart="10dp"
         android:hint="real y position"
         android:inputType="numberDecimal"
         app:layout_constraintBottom_toTopOf="@+id/bluetoothDeviceSpinner"
@@ -48,9 +32,7 @@
         android:id="@+id/bluetoothDeviceSpinner"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="10dp"
-        android:layout_marginStart="10dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/rssiText"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/dialogYValue"
         >
@@ -60,11 +42,20 @@
         android:id="@+id/rssiText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="10dp"
-        android:layout_marginStart="10dp"
-        android:text="TEST TEXT"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:text="TEST RSSI TEXT"
+        app:layout_constraintBottom_toTopOf="@id/txpowerText"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/bluetoothDeviceSpinner"
+        />
+
+    <TextView
+        android:id="@+id/txpowerText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="TEST TX TEXT"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/rssiText"
         />
 </android.support.constraint.ConstraintLayout>

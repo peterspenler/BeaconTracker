@@ -64,8 +64,15 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     public void pointDialog(final boolean changing, final int index){
+        String title;
+        if(changing)
+            title = "Change Point";
+        else
+            title = "Add Point";
+
         final AlertDialog dialog = new AlertDialog.Builder(this, R.style.Theme_AppCompat_Dialog_Alert)
                 .setView(R.layout.dialog_add_point)
+                .setTitle(title)
                 .setPositiveButton(android.R.string.ok, null) //Set to null. We override the onclick
                 .setNegativeButton(android.R.string.cancel, null)
                 .create();
@@ -80,6 +87,12 @@ public final class MainActivity extends AppCompatActivity {
                 final EditText yText = dialog.findViewById(R.id.dialogYValue);
                 final Spinner btSpinner = dialog.findViewById(R.id.bluetoothDeviceSpinner);
                 final TextView rssiView = dialog.findViewById(R.id.rssiText);
+                final TextView txpwrView = dialog.findViewById(R.id.txpowerText);
+
+                assert xText != null;
+                assert yText != null;
+                assert rssiView != null;
+                assert txpwrView != null;
 
                 BeaconManager.stopScanning();
 
@@ -96,8 +109,9 @@ public final class MainActivity extends AppCompatActivity {
                 btSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        assert rssiView != null;
-                        rssiView.setText("RSSI: " + BeaconManager.getRSSI(BeaconManager.getmDevices().valueAt(btSpinner.getSelectedItemPosition()).hashCode()).value());
+                        Rssi rssi = BeaconManager.getRSSI(BeaconManager.getmDevices().valueAt(btSpinner.getSelectedItemPosition()).hashCode());
+                        rssiView.setText("RSSI: " + rssi.value());
+                        txpwrView.setText("TxPwr: " + rssi.txPower());
                     }
 
                     @Override
@@ -108,8 +122,6 @@ public final class MainActivity extends AppCompatActivity {
 
                 if(changing){
                     Point point = PointManager.getPoint(index);
-                    assert xText != null;
-                    assert yText != null;
                     xText.setText(Float.toString(point.realX));
                     yText.setText(Float.toString(point.realY));
                     int spinnerIndex = BeaconManager.indexFromHash(PointManager.getPoint(index).device);

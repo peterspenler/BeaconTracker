@@ -129,7 +129,7 @@ public final class PointManager {
     }
 
     private static double rssiToMeter(int rssi, int txPower){
-        //int txPower = -59;
+        /*int*/ txPower = -76;
     /*
         if(rssi == 0)
             return -1;
@@ -146,15 +146,29 @@ public final class PointManager {
         return Math.pow(10d, ((double) txPower - rssi) / (10 * 2));
     }
 
+    private static double calculateAccuracy(int rssi, int txPower) {
+        if (rssi == 0) {
+            return -1.0; // if we cannot determine accuracy, return -1.
+        }
+
+        double ratio = ((double)rssi)*1.0/txPower;
+        if (ratio < 1.0) {
+            return Math.pow(ratio,10);
+        }
+        else {
+            return  (0.89976)*Math.pow(ratio,7.7095) + 0.111;
+        }
+    }
+
     public static float phoneX(){
         if(points.size() < 3)
             return 0;
 
         double A, B, C, D, E, F, r1, r2, r3;
 
-        r1 = rssiToMeter(BeaconManager.getRSSI(points.get(0).device).value(), BeaconManager.getRSSI(points.get(0).device).txPower());
-        r2 = rssiToMeter(BeaconManager.getRSSI(points.get(1).device).value(), BeaconManager.getRSSI(points.get(1).device).txPower());
-        r3 = rssiToMeter(BeaconManager.getRSSI(points.get(2).device).value(), BeaconManager.getRSSI(points.get(2).device).txPower());
+        r1 = calculateAccuracy(BeaconManager.getRSSI(points.get(0).device).value(), BeaconManager.getRSSI(points.get(0).device).txPower());
+        r2 = calculateAccuracy(BeaconManager.getRSSI(points.get(1).device).value(), BeaconManager.getRSSI(points.get(1).device).txPower());
+        r3 = calculateAccuracy(BeaconManager.getRSSI(points.get(2).device).value(), BeaconManager.getRSSI(points.get(2).device).txPower());
 
         A = -2*points.get(0).realX + 2*points.get(1).realX;
         B = -2*points.get(0).realY + 2*points.get(1).realY;
@@ -176,9 +190,9 @@ public final class PointManager {
 
         double A, B, C, D, E, F, r1, r2, r3;
 
-        r1 = rssiToMeter(BeaconManager.getRSSI(points.get(0).device).value(), BeaconManager.getRSSI(points.get(0).device).txPower());
-        r2 = rssiToMeter(BeaconManager.getRSSI(points.get(1).device).value(), BeaconManager.getRSSI(points.get(1).device).txPower());
-        r3 = rssiToMeter(BeaconManager.getRSSI(points.get(2).device).value(), BeaconManager.getRSSI(points.get(2).device).txPower());
+        r1 = calculateAccuracy(BeaconManager.getRSSI(points.get(0).device).value(), BeaconManager.getRSSI(points.get(0).device).txPower());
+        r2 = calculateAccuracy(BeaconManager.getRSSI(points.get(1).device).value(), BeaconManager.getRSSI(points.get(1).device).txPower());
+        r3 = calculateAccuracy(BeaconManager.getRSSI(points.get(2).device).value(), BeaconManager.getRSSI(points.get(2).device).txPower());
 
         A = -2*points.get(0).realX + 2*points.get(1).realX;
         B = -2*points.get(0).realY + 2*points.get(1).realY;
