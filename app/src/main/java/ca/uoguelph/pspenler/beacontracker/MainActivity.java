@@ -1,9 +1,7 @@
 package ca.uoguelph.pspenler.beacontracker;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.design.widget.FloatingActionButton;
@@ -24,30 +22,25 @@ import java.util.List;
 
 public final class MainActivity extends AppCompatActivity {
 
-    private static Context context;
-    private static Activity activity;
-
     private FloatingActionButton fab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        context = getApplicationContext();
-        activity = this;
 
         fab = findViewById(R.id.addPointFab);
         fab.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                AlertDialog dialog = new AlertDialog.Builder(activity, R.style.ThemeOverlay_AppCompat_Dialog_Alert)
+                AlertDialog dialog = new AlertDialog.Builder(MainActivity.this, R.style.ThemeOverlay_AppCompat_Dialog_Alert)
                         .setMessage("Finish adding points?")
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 PointManager.donePoints();
                                 fab.setVisibility(View.INVISIBLE);
-                                Toast.makeText(context, "Finished adding points", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(App.getContext(), "Finished adding points", Toast.LENGTH_SHORT).show();
                             }
                         })
                         .setNegativeButton("No", null)
@@ -56,7 +49,7 @@ public final class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
-        BeaconManager.initialize(context, activity);
+        BeaconManager.initialize(this);
     }
 
     public void addPointDialog(View view){
@@ -102,7 +95,7 @@ public final class MainActivity extends AppCompatActivity {
                         categories.add(BeaconManager.getmDevices().valueAt(i).getAddress());
                     }
                 }
-                ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(context, R.layout.spinner_item, categories);
+                ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(App.getContext(), R.layout.spinner_item, categories);
                 dataAdapter.setDropDownViewResource(R.layout.spinner_item);
                 btSpinner.setAdapter(dataAdapter);
                 btSpinner.setSelection(0);
@@ -144,14 +137,16 @@ public final class MainActivity extends AppCompatActivity {
                             }
 
                             if(result){
-                                Toast.makeText(activity, "Point added", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(App.getContext(), "Point added", Toast.LENGTH_SHORT).show();
                                 dialog.dismiss();
                                 BeaconManager.resumeScan();
                             }else{
-                                Toast.makeText(activity, "Invalid values", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(App.getContext(), "Invalid values", Toast.LENGTH_SHORT).show();
                             }
                         }catch (NumberFormatException nfe){
-                            Toast.makeText(activity, "Values must be decimal numbers", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(App.getContext(), "Values must be decimal numbers", Toast.LENGTH_SHORT).show();
+                        }catch (Exception e){
+                            Toast.makeText(App.getContext(), "Error processing request", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });

@@ -78,9 +78,9 @@ public final class BeaconManager{
         return mDevices.indexOfKey(hash);
     }
 
-    public static void initialize(Context c, Activity a){
+    public static void initialize(Activity a){
         // Initializes Bluetooth adapter.
-        final BluetoothManager bluetoothManager = (BluetoothManager) c.getSystemService(Context.BLUETOOTH_SERVICE);
+        final BluetoothManager bluetoothManager = (BluetoothManager) App.getApplication().getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
         mDevices = new SparseArray<>();
         mRssis = new SparseArray<>();
