@@ -1,9 +1,16 @@
 package ca.uoguelph.pspenler.beacontracker;
 
+import android.Manifest;
+import android.annotation.TargetApi;
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -86,16 +93,17 @@ public final class MainActivity extends AppCompatActivity {
                 assert yText != null;
                 assert rssiView != null;
                 assert txpwrView != null;
+                assert btSpinner != null;
 
                 BeaconManager.stopScanning();
 
-                List<String> categories = new ArrayList<String>();
+                List<String> categories = new ArrayList<>();
                 if(BeaconManager.getmDevices() != null){
                     for(int i = 0; i < BeaconManager.getmDevices().size(); i++){
                         categories.add(BeaconManager.getmDevices().valueAt(i).getAddress());
                     }
                 }
-                ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(App.getContext(), R.layout.spinner_item, categories);
+                ArrayAdapter<String> dataAdapter = new ArrayAdapter<>(App.getContext(), R.layout.spinner_item, categories);
                 dataAdapter.setDropDownViewResource(R.layout.spinner_item);
                 btSpinner.setAdapter(dataAdapter);
                 btSpinner.setSelection(0);
@@ -158,6 +166,49 @@ public final class MainActivity extends AppCompatActivity {
     public void startBlueTooth() {
         Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
         startActivityForResult(enableBtIntent, 1);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    public void requestLocation(){
+        final Activity activity = this;
+        if (App.getContext().checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            final AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+            builder.setTitle("This app needs location access");
+            builder.setMessage("Please grant location access so this app can detect peripherals.");
+            builder.setPositiveButton(android.R.string.ok, null);
+            builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @TargetApi(Build.VERSION_CODES.M)
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+                }
+            });
+            builder.show();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case 1: {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    System.out.println("coarse location permission granted");
+                } else {
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle("Functionality limited");
+                    builder.setMessage("Since location access has not been granted, this app will not be able to discover beacons when in the background.");
+                    builder.setPositiveButton(android.R.string.ok, null);
+                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+                        }
+
+                    });
+                    builder.show();
+                }
+            }
+        }
     }
 
     @Override
