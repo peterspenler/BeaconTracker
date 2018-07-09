@@ -1,6 +1,5 @@
 package ca.uoguelph.pspenler.beacontracker;
 
-import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -10,11 +9,8 @@ import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.pm.PackageManager;
 import android.os.Build;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AlertDialog;
+import android.os.Handler;
 import android.util.Log;
 import android.util.SparseArray;
 
@@ -56,7 +52,7 @@ class Rssi{
     }
 }
 
-public final class BeaconManager{
+public final class BeaconManager {
 
     private static float locX = 1;
     private static float locY = 1;
@@ -68,13 +64,15 @@ public final class BeaconManager{
     private static SparseArray<Rssi> mRssis;
     private static Random rand = new Random();
 
-    public static float getX(){
-        locX += (2*rand.nextFloat()) - 1;
+    private static Handler scanHandler = new Handler();
+
+    public static float getX() {
+        locX += (2 * rand.nextFloat()) - 1;
         return locX;
     }
 
-    public static float getY(){
-        locY += (2*rand.nextFloat()) - 1;
+    public static float getY() {
+        locY += (2 * rand.nextFloat()) - 1;
         return locY;
     }
 
@@ -82,19 +80,37 @@ public final class BeaconManager{
         return mDevices;
     }
 
-    public static Rssi getRSSI(int device){
+    public static Rssi getRSSI(int device) {
         return mRssis.get(device);
     }
 
-    public static int indexFromHash(int hash){
+    public static int indexFromHash(int hash) {
         return mDevices.indexOfKey(hash);
     }
 
-    public static void initialize(final Activity a){
+    private static Runnable startScan = new Runnable() {
+        @Override
+        public void run() {
+            startLeScan();
+            scanHandler.postDelayed(stopScan, 500);
+        }
+    };
+
+    private static Runnable stopScan = new Runnable() {
+        @Override
+        public void run() {
+            if(mScanning) {
+                stopLeScan();
+                scanHandler.postDelayed(startScan, 100);
+            }
+        }
+    };
+
+    public static void initialize(final Activity a) {
         // Initializes Bluetooth adapter.
         final BluetoothManager bluetoothManager = (BluetoothManager) App.getApplication().getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
             mBluetoothScanner = mBluetoothAdapter.getBluetoothLeScanner();
         mDevices = new SparseArray<>();
         mRssis = new SparseArray<>();
@@ -107,64 +123,73 @@ public final class BeaconManager{
             ((MainActivity) a).requestLocation();
         }
 
-        startLeScan();
+        createNewCallback();
+
+        scanHandler.post(startScan);
+        //startLeScan();
     }
 
-    public static void resumeScan(){
-        if(!mScanning){
+    public static void resumeScan() {
+        if (!mScanning) {
             startLeScan();
         }
     }
 
-    public static void stopScanning(){
-        if(mScanning) {
+    public static void stopScanning() {
+        if (mScanning) {
             stopLeScan();
         }
     }
 
     private static void startLeScan() {
         mScanning = true;
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
             mBluetoothScanner.startScan(newLeScanCallback);
         else
             mBluetoothAdapter.startLeScan(mLeScanCallback);
     }
 
-    private static void stopLeScan(){
+    private static void stopLeScan() {
         mScanning = false;
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
             mBluetoothScanner.stopScan(newLeScanCallback);
         else
             mBluetoothAdapter.stopLeScan(mLeScanCallback);
     }
 
+    private static ScanCallback newLeScanCallback;
+
     //Current scan callback
-    private static ScanCallback newLeScanCallback = new ScanCallback() {
-        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-        @Override
-        public void onScanResult(int callbackType, ScanResult r) {
-            //super.onScanResult(callbackType, result);
-            if (PointManager.canAddPoints()) {
-                int txpwr = 0;
-                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                    txpwr = r.getTxPower();
-                else
-                    txpwr = Objects.requireNonNull(r.getScanRecord()).getTxPowerLevel();
-                mDevices.put(r.getDevice().hashCode(), r.getDevice());
-                if (mRssis.indexOfKey(r.getDevice().hashCode()) < 0) {
-                    mRssis.put(r.getDevice().hashCode(), new Rssi(r.getRssi(), (int) txpwr));
-                }
-                mRssis.get(r.getDevice().hashCode()).add(r.getRssi());
-            }else{
-                for(int i = 0; i < PointManager.numPoints(); i++){
-                    if(PointManager.getPoint(i).device == r.getDevice().hashCode()){
-                        Log.i("UPDATE", r.getDevice().getAddress());
+    private static void createNewCallback() {
+        if(Build.VERSION.SDK_INT >=Build.VERSION_CODES.LOLLIPOP){
+            newLeScanCallback = new ScanCallback() {
+                @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+                @Override
+                public void onScanResult(int callbackType, ScanResult r) {
+                    //super.onScanResult(callbackType, result);
+                    if (PointManager.canAddPoints()) {
+                        int txpwr = 0;
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                            txpwr = r.getTxPower();
+                        else
+                            txpwr = Objects.requireNonNull(r.getScanRecord()).getTxPowerLevel();
+                        mDevices.put(r.getDevice().hashCode(), r.getDevice());
+                        if (mRssis.indexOfKey(r.getDevice().hashCode()) < 0) {
+                            mRssis.put(r.getDevice().hashCode(), new Rssi(r.getRssi(), (int) txpwr));
+                        }
                         mRssis.get(r.getDevice().hashCode()).add(r.getRssi());
+                    } else {
+                        for (int i = 0; i < PointManager.numPoints(); i++) {
+                            if (PointManager.getPoint(i).device == r.getDevice().hashCode()) {
+                                Log.i("UPDATE", r.getDevice().getAddress());
+                                mRssis.get(r.getDevice().hashCode()).add(r.getRssi());
+                            }
+                        }
                     }
                 }
-            }
+            };
         }
-    };
+    }
 
     //Legacy scan callback
     private static BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {

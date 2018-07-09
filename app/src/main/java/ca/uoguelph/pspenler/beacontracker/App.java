@@ -1,6 +1,5 @@
 package ca.uoguelph.pspenler.beacontracker;
 
-import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.util.DisplayMetrics;
