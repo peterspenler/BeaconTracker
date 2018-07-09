@@ -23,13 +23,13 @@ class Rssi{
     private int txPower;
 
     Rssi(int rssi, int txpwr){
-        rssis = new ArrayList<>(10);
+        rssis = new ArrayList<>(20);
         rssis.add(rssi);
         this.txPower = txpwr;
     }
 
     public void add(int rssi){
-        if(rssis.size() >= 10){
+        if(rssis.size() >= 20){
             rssis.remove(0);
         }
         rssis.add(rssi);
