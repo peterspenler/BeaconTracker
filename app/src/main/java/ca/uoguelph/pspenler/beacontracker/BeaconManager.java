@@ -23,13 +23,13 @@ class Rssi{
     private int txPower;
 
     Rssi(int rssi, int txpwr){
-        rssis = new ArrayList<>(20);
+        rssis = new ArrayList<>(15);
         rssis.add(rssi);
         this.txPower = txpwr;
     }
 
     public void add(int rssi){
-        if(rssis.size() >= 20){
+        if(rssis.size() >= 15){
             rssis.remove(0);
         }
         rssis.add(rssi);
@@ -92,7 +92,7 @@ public final class BeaconManager {
         @Override
         public void run() {
             startLeScan();
-            scanHandler.postDelayed(stopScan, 500);
+            scanHandler.postDelayed(stopScan, 2000);
         }
     };
 
@@ -101,7 +101,7 @@ public final class BeaconManager {
         public void run() {
             if(mScanning) {
                 stopLeScan();
-                scanHandler.postDelayed(startScan, 100);
+                scanHandler.postDelayed(startScan, 200);
             }
         }
     };
