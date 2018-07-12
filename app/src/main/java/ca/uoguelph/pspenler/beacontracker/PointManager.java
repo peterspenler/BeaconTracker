@@ -25,8 +25,6 @@ public final class PointManager {
     private static ArrayList<Point> points = new ArrayList<>();
     private static boolean canAddPoints = true;
 
-    private static int height = 0;
-    private static int width = 0;
     private static  float factorX = 0;
     private static float factorY = 0;
     private static float maxStart = Float.MAX_VALUE;
@@ -81,20 +79,22 @@ public final class PointManager {
 
     private static void remapPoints(boolean change){
         int i;
-        height = App.getScreenHeight();
-        width = App.getScreenWidth();
+        int height = App.getScreenHeight();
+        int width = App.getScreenWidth();
 
         if(points.size() == 1){
             points.get(0).x = width / 2;
             points.get(0).y = height / 2;
+            maxStart = maxEnd = points.get(0).realX;
+            maxTop = maxBottom = points.get(0).realY;
             return;
         }
 
         if(change){
             maxStart = Float.MAX_VALUE;
-            maxEnd = Float.MIN_VALUE;
+            maxEnd = Float.MIN_VALUE + 1;
             maxTop = Float.MAX_VALUE;
-            maxBottom = Float.MIN_VALUE;
+            maxBottom = Float.MIN_VALUE + 1;
         }
 
         for(i = 0; i < points.size(); i++){
@@ -111,9 +111,23 @@ public final class PointManager {
         factorX = (width - 100) / (maxEnd - maxStart);
         factorY = (height - 400) / (maxBottom - maxTop);
 
-        for(i = 0; i < points.size(); i++){
-            points.get(i).x = 50 + (factorX * (points.get(i).realX - maxStart));
-            points.get(i).y = 50 + (factorY * (points.get(i).realY - maxTop));
+        if(maxStart == maxEnd){
+            for(i = 0; i < points.size(); i++){
+                points.get(i).x = width / 2;
+            }
+        }else{
+            for(i = 0; i < points.size(); i++){
+                points.get(i).x = 50 + (factorX * (points.get(i).realX - maxStart));
+            }
+        }
+        if(maxTop == maxBottom){
+            for(i = 0; i < points.size(); i++){
+                points.get(i).y = height / 2;
+            }
+        }else {
+            for (i = 0; i < points.size(); i++) {
+                points.get(i).y = 50 + (factorY * (points.get(i).realY - maxTop));
+            }
         }
     }
 
@@ -133,28 +147,6 @@ public final class PointManager {
         if(pos < 25)
             return 25;
         return pos;
-    }
-
-    public void setPointDevice(int i, int device){
-        points.get(i).device = device;
-    }
-
-    private static double rssiToMeter(int rssi, int txPower){
-        /*int*/ txPower = -76;
-    /*
-        if(rssi == 0)
-            return -1;
-
-        float ratio = (float) rssi * (1/txPower);
-
-        if (ratio < 1.0) {
-            return Math.pow(ratio,10);
-        }
-        else {
-            double distance =  (0.89976) * Math.pow(ratio,7.7095) + 0.111;
-            return distance;
-        }*/
-        return Math.pow(10d, ((double) txPower - rssi) / (10 * 2));
     }
 
     private static double calculateAccuracy(int rssi, int txPower) {
