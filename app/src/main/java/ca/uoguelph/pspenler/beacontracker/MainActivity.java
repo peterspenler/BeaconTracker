@@ -57,6 +57,26 @@ public final class MainActivity extends AppCompatActivity {
             }
         });
         BeaconManager.initialize(this);
+        if(App.isFirstOpen()) {
+            showInstructions();
+        }
+    }
+
+    public void showInstructions(){
+        AlertDialog dialog = new AlertDialog.Builder(this, R.style.Theme_AppCompat_Dialog_Alert)
+                .setTitle("BeaconTracker")
+                .setMessage("Welcome to BeaconTracker!\n\n" +
+                        " - Use the add button to add a new beacon\n" +
+                        " - Tap on an existing beacon to edit it\n" +
+                        " - Long press the add button to finish adding beacons")
+                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        App.firstOpen();
+                    }
+                })
+                .create();
+        dialog.show();
     }
 
     public void addPointDialog(View view){

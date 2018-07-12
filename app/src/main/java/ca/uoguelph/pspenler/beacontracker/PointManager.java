@@ -1,5 +1,7 @@
 package ca.uoguelph.pspenler.beacontracker;
 
+import android.util.SparseArray;
+
 import java.util.ArrayList;
 
 class Point{
@@ -66,6 +68,15 @@ public final class PointManager {
 
     public static boolean canAddPoints() {
         return canAddPoints;
+    }
+
+    public static boolean pointUsed(int hashcode){
+        for(int i = 0; i < points.size(); i++){
+            if(points.get(i).hashCode() == hashcode){
+                return true;
+            }
+        }
+        return false;
     }
 
     private static void remapPoints(boolean change){
@@ -166,9 +177,11 @@ public final class PointManager {
 
         double A, B, C, D, E, F, r1, r2, r3;
 
-        r1 = calculateAccuracy(BeaconManager.getRSSI(points.get(0).device).value(), BeaconManager.getRSSI(points.get(0).device).txPower());
-        r2 = calculateAccuracy(BeaconManager.getRSSI(points.get(1).device).value(), BeaconManager.getRSSI(points.get(1).device).txPower());
-        r3 = calculateAccuracy(BeaconManager.getRSSI(points.get(2).device).value(), BeaconManager.getRSSI(points.get(2).device).txPower());
+        int [] RSSIs = closeRSSI();
+
+        r1 = calculateAccuracy(BeaconManager.getRSSI(points.get(RSSIs[0]).device).value(), BeaconManager.getRSSI(points.get(0).device).txPower());
+        r2 = calculateAccuracy(BeaconManager.getRSSI(points.get(RSSIs[1]).device).value(), BeaconManager.getRSSI(points.get(1).device).txPower());
+        r3 = calculateAccuracy(BeaconManager.getRSSI(points.get(RSSIs[2]).device).value(), BeaconManager.getRSSI(points.get(2).device).txPower());
 
         A = -2*points.get(0).realX + 2*points.get(1).realX;
         B = -2*points.get(0).realY + 2*points.get(1).realY;
@@ -190,9 +203,11 @@ public final class PointManager {
 
         double A, B, C, D, E, F, r1, r2, r3;
 
-        r1 = calculateAccuracy(BeaconManager.getRSSI(points.get(0).device).value(), BeaconManager.getRSSI(points.get(0).device).txPower());
-        r2 = calculateAccuracy(BeaconManager.getRSSI(points.get(1).device).value(), BeaconManager.getRSSI(points.get(1).device).txPower());
-        r3 = calculateAccuracy(BeaconManager.getRSSI(points.get(2).device).value(), BeaconManager.getRSSI(points.get(2).device).txPower());
+        int [] RSSIs = closeRSSI();
+
+        r1 = calculateAccuracy(BeaconManager.getRSSI(points.get(RSSIs[0]).device).value(), BeaconManager.getRSSI(points.get(0).device).txPower());
+        r2 = calculateAccuracy(BeaconManager.getRSSI(points.get(RSSIs[1]).device).value(), BeaconManager.getRSSI(points.get(1).device).txPower());
+        r3 = calculateAccuracy(BeaconManager.getRSSI(points.get(RSSIs[2]).device).value(), BeaconManager.getRSSI(points.get(2).device).txPower());
 
         A = -2*points.get(0).realX + 2*points.get(1).realX;
         B = -2*points.get(0).realY + 2*points.get(1).realY;
@@ -206,5 +221,21 @@ public final class PointManager {
                 + Math.pow(points.get(2).realY, 2);
 
         return (float) (((C*D) - (F*A))/((B*D) - (A*E)));
+    }
+
+    private static int[] closeRSSI(){
+        int values[] = {0,1,2};
+
+        SparseArray<Rssi> RSSIs = BeaconManager.getmRssis();
+
+        for(int i = 0; i < points.size(); i++){
+            for(int j = 0; j < 3; j++){
+                if(RSSIs.get(points.get(i).device).value() >= RSSIs.get(points.get(values[j]).device).value()){
+                    values[j] = i;
+                    break;
+                }
+            }
+        }
+        return values;
     }
 }

@@ -60,6 +60,7 @@ public final class BeaconManager {
     private static BluetoothAdapter mBluetoothAdapter;
     private static BluetoothLeScanner mBluetoothScanner;
     private static boolean mScanning = true;
+    private static boolean mRunning = false;
     private static SparseArray<BluetoothDevice> mDevices;
     private static SparseArray<Rssi> mRssis;
     private static Random rand = new Random();
@@ -82,6 +83,10 @@ public final class BeaconManager {
 
     public static Rssi getRSSI(int device) {
         return mRssis.get(device);
+    }
+
+    public static SparseArray<Rssi> getmRssis() {
+        return mRssis.clone();
     }
 
     public static int indexFromHash(int hash) {
@@ -126,18 +131,22 @@ public final class BeaconManager {
         createNewCallback();
 
         scanHandler.post(startScan);
+        mRunning = true;
         //startLeScan();
     }
 
     public static void resumeScan() {
         if (!mScanning) {
-            startLeScan();
+            if(!mRunning){
+                scanHandler.post(startScan);
+            }
         }
     }
 
     public static void stopScanning() {
         if (mScanning) {
             stopLeScan();
+            mRunning = false;
         }
     }
 
@@ -214,6 +223,4 @@ public final class BeaconManager {
             }
         }
     };
-
-
 }
