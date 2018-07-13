@@ -26,6 +26,7 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public final class MainActivity extends AppCompatActivity {
 
@@ -62,6 +63,7 @@ public final class MainActivity extends AppCompatActivity {
         }
     }
 
+    //Shows instructions for the app in a dialog
     public void showInstructions(){
         AlertDialog dialog = new AlertDialog.Builder(this, R.style.Theme_AppCompat_Dialog_Alert)
                 .setTitle("BeaconTracker")
@@ -79,10 +81,12 @@ public final class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    //Starts the add point dialog when the add button is pressed
     public void addPointDialog(View view){
         pointDialog(false, -1);
     }
 
+    //Creates and shows the dialog for adding or changing points
     public void pointDialog(final boolean changing, final int index){
         String title;
         if(changing)
@@ -183,6 +187,7 @@ public final class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    //Starts bluetooth if not already running
     public void startBlueTooth() {
         Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
         startActivityForResult(enableBtIntent, 1);
@@ -207,6 +212,7 @@ public final class MainActivity extends AppCompatActivity {
         }
     }
 
+    //Callback for location permissions request
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
@@ -231,6 +237,7 @@ public final class MainActivity extends AppCompatActivity {
         }
     }
 
+    //These functions start and stop bluetooth scanning when app is stopped and started
     @Override
     protected void onResume() {
         BeaconManager.resumeScan();

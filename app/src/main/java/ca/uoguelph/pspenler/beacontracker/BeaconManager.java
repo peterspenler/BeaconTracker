@@ -16,7 +16,6 @@ import android.util.SparseArray;
 
 import java.util.ArrayList;
 import java.util.Objects;
-import java.util.Random;
 
 class Rssi{
     private ArrayList<Integer> rssis;
@@ -35,10 +34,6 @@ class Rssi{
         rssis.add(rssi);
     }
 
-    public void setTxPower(int txpwr){
-        this.txPower = txpwr;
-    }
-
     public int txPower(){
         return txPower;
     }
@@ -54,45 +49,38 @@ class Rssi{
 
 public final class BeaconManager {
 
-    private static float locX = 1;
-    private static float locY = 1;
-
     private static BluetoothAdapter mBluetoothAdapter;
     private static BluetoothLeScanner mBluetoothScanner;
-    private static boolean mScanning = true;
-    private static boolean mRunning = false;
-    private static SparseArray<BluetoothDevice> mDevices;
-    private static SparseArray<Rssi> mRssis;
-    private static Random rand = new Random();
 
-    private static Handler scanHandler = new Handler();
+    private static boolean mScanning = true; //Whether or not scanning is happening
+    private static boolean mRunning = false; //Whether or not scanning has been paused
 
-    public static float getX() {
-        locX += (2 * rand.nextFloat()) - 1;
-        return locX;
-    }
+    private static SparseArray<BluetoothDevice> mDevices; //List of bluetooth devices
+    private static SparseArray<Rssi> mRssis; //List of RSSIs for bluetooth devices
 
-    public static float getY() {
-        locY += (2 * rand.nextFloat()) - 1;
-        return locY;
-    }
+    private static Handler scanHandler = new Handler(); //Handles scheduling of scanning
 
+    //Returns list of bluetooth devices
     public static SparseArray<BluetoothDevice> getmDevices() {
         return mDevices;
     }
 
+    //Returns RSSI value of specific bluetooth device from it's hash
     public static Rssi getRSSI(int device) {
         return mRssis.get(device);
     }
 
+    //Returns list of all RSSI values
     public static SparseArray<Rssi> getmRssis() {
         return mRssis.clone();
     }
 
+    //returns index of bluetooth device in list from it's hash
     public static int indexFromHash(int hash) {
         return mDevices.indexOfKey(hash);
     }
 
+    //Starts the bluetooth scan and schedules the scan to stop after 2 seconds
     private static Runnable startScan = new Runnable() {
         @Override
         public void run() {
@@ -101,6 +89,7 @@ public final class BeaconManager {
         }
     };
 
+    //Stops the bluetooth scan and schedules the restart of the scan after 200 ms
     private static Runnable stopScan = new Runnable() {
         @Override
         public void run() {
@@ -111,15 +100,18 @@ public final class BeaconManager {
         }
     };
 
+    //Initializes bluetooth manager, adapter, and device and rssi lists, then starts scan
     public static void initialize(final Activity a) {
         // Initializes Bluetooth adapter.
         final BluetoothManager bluetoothManager = (BluetoothManager) App.getApplication().getSystemService(Context.BLUETOOTH_SERVICE);
+        assert bluetoothManager != null;
         mBluetoothAdapter = bluetoothManager.getAdapter();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
             mBluetoothScanner = mBluetoothAdapter.getBluetoothLeScanner();
         mDevices = new SparseArray<>();
         mRssis = new SparseArray<>();
 
+        assert mBluetoothAdapter != null;
         if (mBluetoothAdapter != null || !mBluetoothAdapter.isEnabled()) {
             ((MainActivity) a).startBlueTooth();
         }
@@ -135,6 +127,7 @@ public final class BeaconManager {
         //startLeScan();
     }
 
+    //Public function for starting bluetooth scan
     public static void resumeScan() {
         if (!mScanning) {
             if(!mRunning){
@@ -143,6 +136,7 @@ public final class BeaconManager {
         }
     }
 
+    //Public function for stopping bluetooth scan
     public static void stopScanning() {
         if (mScanning) {
             stopLeScan();
@@ -150,6 +144,7 @@ public final class BeaconManager {
         }
     }
 
+    //Starts either current or legacy bluetooth scan depending on Android version
     private static void startLeScan() {
         mScanning = true;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
@@ -158,6 +153,7 @@ public final class BeaconManager {
             mBluetoothAdapter.startLeScan(mLeScanCallback);
     }
 
+    //Starts or stops current or legacy bluetooth scan depending on Android version
     private static void stopLeScan() {
         mScanning = false;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
@@ -166,25 +162,25 @@ public final class BeaconManager {
             mBluetoothAdapter.stopLeScan(mLeScanCallback);
     }
 
+    //Initializes current bluetooth scan callback
     private static ScanCallback newLeScanCallback;
 
-    //Current scan callback
+    //Current Android scan callback
     private static void createNewCallback() {
         if(Build.VERSION.SDK_INT >=Build.VERSION_CODES.LOLLIPOP){
             newLeScanCallback = new ScanCallback() {
                 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
                 @Override
                 public void onScanResult(int callbackType, ScanResult r) {
-                    //super.onScanResult(callbackType, result);
                     if (PointManager.canAddPoints()) {
-                        int txpwr = 0;
+                        int txpwr;
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                             txpwr = r.getTxPower();
                         else
                             txpwr = Objects.requireNonNull(r.getScanRecord()).getTxPowerLevel();
                         mDevices.put(r.getDevice().hashCode(), r.getDevice());
                         if (mRssis.indexOfKey(r.getDevice().hashCode()) < 0) {
-                            mRssis.put(r.getDevice().hashCode(), new Rssi(r.getRssi(), (int) txpwr));
+                            mRssis.put(r.getDevice().hashCode(), new Rssi(r.getRssi(), txpwr));
                         }
                         mRssis.get(r.getDevice().hashCode()).add(r.getRssi());
                     } else {
@@ -200,7 +196,7 @@ public final class BeaconManager {
         }
     }
 
-    //Legacy scan callback
+    //Legacy Android scan callback
     private static BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
         @Override
         public void onLeScan(final BluetoothDevice device, final int rssi, byte[] scanRecord) {

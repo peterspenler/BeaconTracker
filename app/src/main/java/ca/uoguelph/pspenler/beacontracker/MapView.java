@@ -1,5 +1,6 @@
 package ca.uoguelph.pspenler.beacontracker;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -10,18 +11,17 @@ import java.util.Calendar;
 
 public class MapView extends android.support.v7.widget.AppCompatImageView {
 
-    private static final int MAX_CLICK_DURATION = 150;
-    private static final int MAX_TAP_DISTANCE = 30;
-    private long startClickTime;
+    private static final int MAX_CLICK_DURATION = 150; //Length of click in ms
+    private static final int MAX_TAP_DISTANCE = 30; //Distance tap can be from point to register
+    private long startClickTime; //Holds the time the tap starts
 
-    private Context context;
+    private Context context; //Application context
 
     private Paint pointPaint = new Paint();
     private Paint textPaint = new Paint();
     private Paint mapPaint = new Paint();
 
-    private int count = 0;
-
+    //Sets paint colours and context
     public MapView(Context context, AttributeSet attrs) {
         super(context, attrs);
         pointPaint.setColor(getResources().getColor(R.color.colorAccent));
@@ -31,6 +31,7 @@ public class MapView extends android.support.v7.widget.AppCompatImageView {
         this.context = context;
     }
 
+    //Draws points on map
     @Override
     public void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -48,6 +49,8 @@ public class MapView extends android.support.v7.widget.AppCompatImageView {
         invalidate();
     }
 
+    //Lets points be edited when tapped
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         switch(event.getAction() & MotionEvent.ACTION_MASK){

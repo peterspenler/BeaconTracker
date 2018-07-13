@@ -6,14 +6,18 @@ import android.content.SharedPreferences;
 import android.util.DisplayMetrics;
 import android.view.WindowManager;
 
+import java.util.Objects;
+
 public class App extends Application {
 
-    private static Application sApplication;
+    private static Application sApplication; //Stores application reference
 
+    //Returns application in static context
     public static Application getApplication() {
         return sApplication;
     }
 
+    //Returns application context in static context
     public static Context getContext() {
         return getApplication().getApplicationContext();
     }
@@ -24,24 +28,27 @@ public class App extends Application {
         sApplication = this;
     }
 
+    //Returns screen height
     public static int getScreenHeight(){
         DisplayMetrics displayMetrics = new DisplayMetrics();
-        ((WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getMetrics(displayMetrics);
+        ((WindowManager) Objects.requireNonNull(getContext().getSystemService(Context.WINDOW_SERVICE))).getDefaultDisplay().getMetrics(displayMetrics);
         return displayMetrics.heightPixels;
     }
 
+    //Returns screen width
     public static int getScreenWidth(){
         DisplayMetrics displayMetrics = new DisplayMetrics();
-        ((WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getMetrics(displayMetrics);
+        ((WindowManager) Objects.requireNonNull(getContext().getSystemService(Context.WINDOW_SERVICE))).getDefaultDisplay().getMetrics(displayMetrics);
         return displayMetrics.widthPixels;
     }
 
+    //Checks whether or not this is the first time the app is opened
     public static boolean isFirstOpen(){
         SharedPreferences sharedPref = getContext().getSharedPreferences("useData", Context.MODE_PRIVATE);
-        Boolean firstUse = sharedPref.getBoolean("firstUse", true);
-        return firstUse;
+        return sharedPref.getBoolean("firstUse", true);
     }
 
+    //Sets the firstUse preference to false
     public static void firstOpen(){
         SharedPreferences.Editor editor = getContext().getSharedPreferences("useData", MODE_PRIVATE).edit();
         editor.putBoolean("firstUse", false);
