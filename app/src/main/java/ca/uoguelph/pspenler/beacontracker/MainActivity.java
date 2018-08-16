@@ -26,7 +26,6 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public final class MainActivity extends AppCompatActivity {
 
@@ -262,4 +261,9 @@ public final class MainActivity extends AppCompatActivity {
         super.onStop();
     }
 
+    public void calibrate(View view) {
+        double dist1 = 0, dist2 = 0, dist3 = 0;
+        double r1 = 0, r2 = 0, r3 = 0;
+
+    }
 }

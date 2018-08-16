@@ -22,13 +22,13 @@ class Rssi{
     private int txPower;
 
     Rssi(int rssi, int txpwr){
-        rssis = new ArrayList<>(15);
+        rssis = new ArrayList<>(10);
         rssis.add(rssi);
         this.txPower = txpwr;
     }
 
     public void add(int rssi){
-        if(rssis.size() >= 15){
+        if(rssis.size() >= 10){
             rssis.remove(0);
         }
         rssis.add(rssi);
@@ -80,12 +80,12 @@ public final class BeaconManager {
         return mDevices.indexOfKey(hash);
     }
 
-    //Starts the bluetooth scan and schedules the scan to stop after 2 seconds
+    //Starts the bluetooth scan and schedules the scan to stop after 1 second
     private static Runnable startScan = new Runnable() {
         @Override
         public void run() {
             startLeScan();
-            scanHandler.postDelayed(stopScan, 2000);
+            scanHandler.postDelayed(stopScan, 1000);
         }
     };
 

@@ -1,5 +1,6 @@
 package ca.uoguelph.pspenler.beacontracker;
 
+import android.support.constraint.solver.widgets.ConstraintHorizontalLayout;
 import android.util.SparseArray;
 
 import java.util.ArrayList;
@@ -152,8 +153,8 @@ public final class PointManager {
     //Gets display Y position from real Y position
     public static int findYFromRealY(float realY){
         int pos = (int)(50 + (factorY * (realY - maxTop)));
-        if(pos > (App.getScreenHeight() - 25))
-            return App.getScreenHeight() - 25;
+        if(pos > (App.getScreenHeight() - 50))
+            return App.getScreenHeight() - 50;
         if(pos < 25)
             return 25;
         return pos;
@@ -170,7 +171,8 @@ public final class PointManager {
             return Math.pow(ratio,10);
         }
         else {
-            return  (0.89976)*Math.pow(ratio,7.7095) + 0.111;
+            //return  (0.89976)*Math.pow(ratio,7.7095) + 0.111;
+            return  Calibrater.A()*Math.pow(ratio,Calibrater.B()) + Calibrater.C();
         }
     }
 
