@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:paddingStart="26dp"
+    android:paddingEnd="26dp">
+
+    <EditText
+        android:id="@+id/dialogDist"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Real distance from beacon"
+        android:inputType="numberDecimal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Spinner
+        android:id="@+id/calibrateSpinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@id/rssiText"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/dialogDist"
+        >
+    </Spinner>
+
+    <TextView
+        android:id="@+id/rssiText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="TEST RSSI TEXT"
+        app:layout_constraintBottom_toTopOf="@id/txpowerText"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/calibrateSpinner"
+        />
+
+    <TextView
+        android:id="@+id/txpowerText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="TEST TX TEXT"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/rssiText"
+        />
+</android.support.constraint.ConstraintLayout>
