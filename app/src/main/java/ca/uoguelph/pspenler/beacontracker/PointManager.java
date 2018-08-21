@@ -104,6 +104,7 @@ public final class PointManager {
             return;
         }
 
+        //Resets the maximum coordinates if a point's position has changed
         if(change){
             maxStart = Float.MAX_VALUE;
             maxEnd = Float.MIN_VALUE + 1;
@@ -111,6 +112,7 @@ public final class PointManager {
             maxBottom = Float.MIN_VALUE + 1;
         }
 
+        //Finds the maximum point coordinates
         for(i = 0; i < points.size(); i++){
             if(points.get(i).realX > maxEnd)
                 maxEnd = points.get(i).realX;
@@ -125,20 +127,26 @@ public final class PointManager {
         factorX = (width - 100) / (maxEnd - maxStart);
         factorY = (height - 400) / (maxBottom - maxTop);
 
+        //Handles cases where all X coordinates are the same
         if(maxStart == maxEnd){
             for(i = 0; i < points.size(); i++){
                 points.get(i).x = width / 2;
             }
-        }else{
+        }
+        //Calculates all virtual X values
+        else{
             for(i = 0; i < points.size(); i++){
                 points.get(i).x = 50 + (factorX * (points.get(i).realX - maxStart));
             }
         }
+        //Handles cases where all Y coordinates are the same
         if(maxTop == maxBottom){
             for(i = 0; i < points.size(); i++){
                 points.get(i).y = height / 2;
             }
-        }else {
+        }
+        //Calculates all virtual Y values
+        else {
             for (i = 0; i < points.size(); i++) {
                 points.get(i).y = 50 + (factorY * (points.get(i).realY - maxTop));
             }
@@ -235,7 +243,7 @@ public final class PointManager {
         return (float) (((C*D) - (F*A))/((B*D) - (A*E)));
     }
 
-    //Finds the index of the 3 devices with the closest RSSIs
+    //Finds the index of the 3 devices with the closest RSSIs in order to handle many points
     private static int[] closeRSSI(){
         int values[] = {0,1,2};
 
