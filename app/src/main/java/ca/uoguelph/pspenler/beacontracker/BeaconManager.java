@@ -122,8 +122,9 @@ public final class BeaconManager {
 
         createNewCallback();
 
-        scanHandler.post(startScan);
+        //scanHandler.post(startScan);
         mRunning = true;
+        resumeScan();
         //startLeScan();
     }
 

@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
@@ -93,6 +94,8 @@ public final class MainActivity extends AppCompatActivity {
         else
             title = "Add Point";
 
+        BeaconManager.stopScanning();
+
         final AlertDialog dialog = new AlertDialog.Builder(this, R.style.Theme_AppCompat_Dialog_Alert)
                 .setView(R.layout.dialog_add_point)
                 .setTitle(title)
@@ -106,6 +109,7 @@ public final class MainActivity extends AppCompatActivity {
             public void onShow(DialogInterface dialogInterface) {
 
                 Button button = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                Button cancel = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
                 final EditText xText = dialog.findViewById(R.id.dialogXValue);
                 final EditText yText = dialog.findViewById(R.id.dialogYValue);
                 final Spinner btSpinner = dialog.findViewById(R.id.bluetoothDeviceSpinner);
@@ -154,6 +158,14 @@ public final class MainActivity extends AppCompatActivity {
                     }
                 }
 
+                cancel.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        BeaconManager.resumeScan();
+                        dialog.dismiss();
+                    }
+                });
+
                 button.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
@@ -169,8 +181,8 @@ public final class MainActivity extends AppCompatActivity {
 
                             if(result){
                                 Toast.makeText(App.getContext(), "Point added", Toast.LENGTH_SHORT).show();
-                                dialog.dismiss();
                                 BeaconManager.resumeScan();
+                                dialog.dismiss();
                             }else{
                                 Toast.makeText(App.getContext(), "Invalid values", Toast.LENGTH_SHORT).show();
                             }
@@ -262,66 +274,6 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     public void calibrate(View view) {
-        double dist1 = 0, dist2 = 0, dist3 = 0;
-        double r1 = 0, r2 = 0, r3 = 0;
-        int readingNum = 0;
-
-        final AlertDialog dialog = new AlertDialog.Builder(this, R.style.Theme_AppCompat_Dialog_Alert)
-                .setView(R.layout.dialog_calibrate)
-                .setTitle("Calibrate first point")
-                .setPositiveButton(android.R.string.ok, null) //Set to null. We override the onclick
-                .setNegativeButton(android.R.string.cancel, null)
-                .create();
-
-        dialog.show();
-
-        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
-
-            @Override
-            public void onShow(DialogInterface dialogInterface) {
-
-                Button button = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-                final EditText distText = dialog.findViewById(R.id.dialogDist);
-                final Spinner btSpinner = dialog.findViewById(R.id.calibrateSpinner);
-                final TextView rssiView = dialog.findViewById(R.id.rssiText);
-                final TextView txpwrView = dialog.findViewById(R.id.txpowerText);
-
-                assert distText != null;
-                assert rssiView != null;
-                assert txpwrView != null;
-                assert btSpinner != null;
-
-                List<String> categories = new ArrayList<>();
-                if(BeaconManager.getmDevices() != null){
-                    for(int i = 0; i < BeaconManager.getmDevices().size(); i++){
-                        categories.add(BeaconManager.getmDevices().valueAt(i).getAddress());
-                    }
-                }
-                ArrayAdapter<String> dataAdapter = new ArrayAdapter<>(App.getContext(), R.layout.spinner_item, categories);
-                dataAdapter.setDropDownViewResource(R.layout.spinner_item);
-                btSpinner.setAdapter(dataAdapter);
-                btSpinner.setSelection(0);
-                btSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        Rssi rssi = BeaconManager.getRSSI(BeaconManager.getmDevices().valueAt(btSpinner.getSelectedItemPosition()).hashCode());
-                        rssiView.setText("RSSI: " + rssi.value());
-                        txpwrView.setText("TxPwr: " + rssi.txPower());
-                    }
-
-                    @Override
-                    public void onNothingSelected(AdapterView<?> parent) {
-
-                    }
-                });
-
-                button.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-
-                    }
-                });
-            }
-        });
+        new CalibrateDialog().show(getFragmentManager(), "Calibrate Dialog");
     }
 }
