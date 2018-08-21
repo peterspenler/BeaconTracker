@@ -9,6 +9,7 @@ import android.view.MotionEvent;
 
 import java.util.Calendar;
 
+//The MapView class draws the phone point and beacon points on a view.
 public class MapView extends android.support.v7.widget.AppCompatImageView {
 
     private static final int MAX_CLICK_DURATION = 150; //Length of click in ms
@@ -17,28 +18,28 @@ public class MapView extends android.support.v7.widget.AppCompatImageView {
 
     private Context context; //Application context
 
-    private Paint pointPaint = new Paint();
-    private Paint textPaint = new Paint();
-    private Paint mapPaint = new Paint();
+    private Paint pointPaint = new Paint(); //Paint for the beacon points
+    private Paint textPaint = new Paint(); //Paint for the text
+    private Paint phonePaint = new Paint(); //Paint for the phone point
 
     //Sets paint colours and context
     public MapView(Context context, AttributeSet attrs) {
         super(context, attrs);
         pointPaint.setColor(getResources().getColor(R.color.colorAccent));
         textPaint.setColor(getResources().getColor(R.color.colorPrimaryDark));
-        mapPaint.setColor(getResources().getColor(R.color.background));
+        phonePaint.setColor(getResources().getColor(R.color.background));
 
         this.context = context;
     }
 
-    //Draws points on map
+    //Draws all points on map
     @Override
     public void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         canvas.save();
         int phoneX = PointManager.findXFromRealX(PointManager.phoneX());
         int phoneY = PointManager.findYFromRealY(PointManager.phoneY());
-        canvas.drawCircle(phoneX, phoneY, 10, mapPaint);
+        canvas.drawCircle(phoneX, phoneY, 10, phonePaint);
         for (int i = 0; i < PointManager.numPoints(); i++){
             canvas.drawCircle(PointManager.getPoint(i).x, PointManager.getPoint(i).y, 10, pointPaint);
             canvas.drawText(Integer.toString(BeaconManager.getRSSI(PointManager.getPoint(i).device).value()), PointManager.getPoint(i).x, PointManager.getPoint(i).y, textPaint);

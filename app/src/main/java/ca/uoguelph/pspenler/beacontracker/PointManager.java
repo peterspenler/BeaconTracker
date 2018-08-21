@@ -1,10 +1,11 @@
 package ca.uoguelph.pspenler.beacontracker;
 
-import android.support.constraint.solver.widgets.ConstraintHorizontalLayout;
 import android.util.SparseArray;
 
 import java.util.ArrayList;
 
+//The Point class stores the real X and Y values, the virtual X and Y values,
+//and the hash of the associated beacon
 class Point{
       float x;
       float y;
@@ -26,12 +27,15 @@ public final class PointManager {
     private static ArrayList<Point> points = new ArrayList<>(); //List of points
     private static boolean canAddPoints = true; //Whether or not points can be added
 
+    //These variables store the scaling factors to turn real X and Y values into virtual X and Y values
     private static  float factorX = 0; //Scaling factor for real X to display X
     private static float factorY = 0; //Scaling factor for real Y to display Y
-    private static float maxStart = Float.MAX_VALUE; //Farthest right value
-    private static float maxEnd = Float.MIN_VALUE; //Farthest left value
-    private static float maxTop = Float.MAX_VALUE; //Farthest up value
-    private static float maxBottom = Float.MIN_VALUE; //Farthest down value
+
+    //These variables store the extremes of the beacon coordinates
+    private static float maxStart = Float.MAX_VALUE; //Farthest right beacon coordinate
+    private static float maxEnd = Float.MIN_VALUE; //Farthest left beacon coordinate
+    private static float maxTop = Float.MAX_VALUE; //Farthest up beacon coordinate
+    private static float maxBottom = Float.MIN_VALUE; //Farthest down beacon coordinate
 
     //Gets point by index
     public static Point getPoint(int i) {
@@ -91,6 +95,7 @@ public final class PointManager {
         int height = App.getScreenHeight();
         int width = App.getScreenWidth();
 
+        //Handles mappings with a single point
         if(points.size() == 1){
             points.get(0).x = width / 2;
             points.get(0).y = height / 2;

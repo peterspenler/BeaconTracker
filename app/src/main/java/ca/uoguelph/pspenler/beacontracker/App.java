@@ -12,12 +12,12 @@ public class App extends Application {
 
     private static Application sApplication; //Stores application reference
 
-    //Returns application in static context
+    //Returns application in a static context
     public static Application getApplication() {
         return sApplication;
     }
 
-    //Returns application context in static context
+    //Returns application context in a static context
     public static Context getContext() {
         return getApplication().getApplicationContext();
     }
@@ -48,7 +48,7 @@ public class App extends Application {
         return sharedPref.getBoolean("firstUse", true);
     }
 
-    //Sets the firstUse preference to false
+    //Designates that the app has been opened for the first time
     public static void firstOpen(){
         SharedPreferences.Editor editor = getContext().getSharedPreferences("useData", MODE_PRIVATE).edit();
         editor.putBoolean("firstUse", false);

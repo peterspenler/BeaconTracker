@@ -17,27 +17,32 @@ import android.util.SparseArray;
 import java.util.ArrayList;
 import java.util.Objects;
 
+//RSSI class holds the last 20 rssi values, txpower, and average
+// rssi for a beacon
 class Rssi{
     private ArrayList<Integer> rssis;
     private int txPower;
 
     Rssi(int rssi, int txpwr){
-        rssis = new ArrayList<>(10);
+        rssis = new ArrayList<>(20);
         rssis.add(rssi);
         this.txPower = txpwr;
     }
 
+    //Adds new rssi value to the class
     public void add(int rssi){
-        if(rssis.size() >= 10){
+        if(rssis.size() >= 20){
             rssis.remove(0);
         }
         rssis.add(rssi);
     }
 
+    //Returns TxPower
     public int txPower(){
         return txPower;
     }
 
+    //Returns the average of the last 20 rssi values
     public int value(){
         int i, total = 0;
         for(i = 0; i < rssis.size(); i++){
@@ -80,27 +85,29 @@ public final class BeaconManager {
         return mDevices.indexOfKey(hash);
     }
 
-    //Starts the bluetooth scan and schedules the scan to stop after 1 second
-    private static Runnable startScan = new Runnable() {
-        @Override
-        public void run() {
-            startLeScan();
-            scanHandler.postDelayed(stopScan, 1000);
-        }
-    };
+    //These two methods cycle bluetooth scanning on and off in order to get new rssis faster
 
-    //Stops the bluetooth scan and schedules the restart of the scan after 200 ms
-    private static Runnable stopScan = new Runnable() {
-        @Override
-        public void run() {
-            if(mScanning) {
-                stopLeScan();
-                scanHandler.postDelayed(startScan, 200);
+        //Starts the bluetooth scan and schedules the scan to stop after 1 second
+        private static Runnable startScan = new Runnable() {
+            @Override
+            public void run() {
+                startLeScan();
+                scanHandler.postDelayed(stopScan, 1000);
             }
-        }
-    };
+        };
 
-    //Initializes bluetooth manager, adapter, and device and rssi lists, then starts scan
+        //Stops the bluetooth scan and schedules the restart of the scan after 200 ms
+        private static Runnable stopScan = new Runnable() {
+            @Override
+            public void run() {
+                if(mScanning) {
+                    stopLeScan();
+                    scanHandler.postDelayed(startScan, 200);
+                }
+            }
+        };
+
+    //Initializes bluetooth manager, adapter, and device and rssi lists, then starts scanning
     public static void initialize(final Activity a) {
         // Initializes Bluetooth adapter.
         final BluetoothManager bluetoothManager = (BluetoothManager) App.getApplication().getSystemService(Context.BLUETOOTH_SERVICE);
@@ -122,10 +129,8 @@ public final class BeaconManager {
 
         createNewCallback();
 
-        //scanHandler.post(startScan);
         mRunning = true;
         resumeScan();
-        //startLeScan();
     }
 
     //Public function for starting bluetooth scan
@@ -166,58 +171,59 @@ public final class BeaconManager {
     //Initializes current bluetooth scan callback
     private static ScanCallback newLeScanCallback;
 
-    //Current Android scan callback
-    private static void createNewCallback() {
-        if(Build.VERSION.SDK_INT >=Build.VERSION_CODES.LOLLIPOP){
-            newLeScanCallback = new ScanCallback() {
-                @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-                @Override
-                public void onScanResult(int callbackType, ScanResult r) {
-                    if (PointManager.canAddPoints()) {
-                        int txpwr;
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                            txpwr = r.getTxPower();
-                        else
-                            txpwr = Objects.requireNonNull(r.getScanRecord()).getTxPowerLevel();
-                        mDevices.put(r.getDevice().hashCode(), r.getDevice());
-                        if (mRssis.indexOfKey(r.getDevice().hashCode()) < 0) {
-                            mRssis.put(r.getDevice().hashCode(), new Rssi(r.getRssi(), txpwr));
-                        }
-                        mRssis.get(r.getDevice().hashCode()).add(r.getRssi());
-                    } else {
-                        for (int i = 0; i < PointManager.numPoints(); i++) {
-                            if (PointManager.getPoint(i).device == r.getDevice().hashCode()) {
-                                Log.i("UPDATE", r.getDevice().getAddress());
-                                mRssis.get(r.getDevice().hashCode()).add(r.getRssi());
+    //Callback methods store the rssi value and txpower value for a beacon in its appropriate RSSI class
+        //Current Android scan callback method
+        private static void createNewCallback() {
+            if(Build.VERSION.SDK_INT >=Build.VERSION_CODES.LOLLIPOP){
+                newLeScanCallback = new ScanCallback() {
+                    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+                    @Override
+                    public void onScanResult(int callbackType, ScanResult r) {
+                        if (PointManager.canAddPoints()) {
+                            int txpwr;
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                                txpwr = r.getTxPower();
+                            else
+                                txpwr = Objects.requireNonNull(r.getScanRecord()).getTxPowerLevel();
+                            mDevices.put(r.getDevice().hashCode(), r.getDevice());
+                            if (mRssis.indexOfKey(r.getDevice().hashCode()) < 0) {
+                                mRssis.put(r.getDevice().hashCode(), new Rssi(r.getRssi(), txpwr));
+                            }
+                            mRssis.get(r.getDevice().hashCode()).add(r.getRssi());
+                        } else {
+                            for (int i = 0; i < PointManager.numPoints(); i++) {
+                                if (PointManager.getPoint(i).device == r.getDevice().hashCode()) {
+                                    Log.i("UPDATE", r.getDevice().getAddress());
+                                    mRssis.get(r.getDevice().hashCode()).add(r.getRssi());
+                                }
                             }
                         }
                     }
-                }
-            };
+                };
+            }
         }
-    }
 
-    //Legacy Android scan callback
-    private static BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
-        @Override
-        public void onLeScan(final BluetoothDevice device, final int rssi, byte[] scanRecord) {
-            if (PointManager.canAddPoints()) {
-                if ((scanRecord[2] == 6) && (scanRecord[3] == 26)) {
-                    byte txpwr = scanRecord[29];
-                    mDevices.put(device.hashCode(), device);
-                    if (mRssis.indexOfKey(device.hashCode()) < 0) {
-                        mRssis.put(device.hashCode(), new Rssi(rssi, (int) txpwr));
-                    }
-                    mRssis.get(device.hashCode()).add(rssi);
-                }
-            }else{
-                for(int i = 0; i < PointManager.numPoints(); i++){
-                    if(PointManager.getPoint(i).device == device.hashCode()){
-                        Log.i("UPDATE", device.getAddress());
+        //Legacy Android scan callback method
+        private static BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
+            @Override
+            public void onLeScan(final BluetoothDevice device, final int rssi, byte[] scanRecord) {
+                if (PointManager.canAddPoints()) {
+                    if ((scanRecord[2] == 6) && (scanRecord[3] == 26)) {
+                        byte txpwr = scanRecord[29];
+                        mDevices.put(device.hashCode(), device);
+                        if (mRssis.indexOfKey(device.hashCode()) < 0) {
+                            mRssis.put(device.hashCode(), new Rssi(rssi, (int) txpwr));
+                        }
                         mRssis.get(device.hashCode()).add(rssi);
+                    }
+                }else{
+                    for(int i = 0; i < PointManager.numPoints(); i++){
+                        if(PointManager.getPoint(i).device == device.hashCode()){
+                            Log.i("UPDATE", device.getAddress());
+                            mRssis.get(device.hashCode()).add(rssi);
+                        }
                     }
                 }
             }
-        }
-    };
+        };
 }

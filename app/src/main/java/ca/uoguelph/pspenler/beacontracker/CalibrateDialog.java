@@ -6,7 +6,6 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AlertDialog;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -19,12 +18,14 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
+//This class creates a dialog for calibrating the app
+
 public class CalibrateDialog extends DialogFragment {
 
     AlertDialog dialog;
-    float dist1 = 0, dist2 = 0, dist3 = 0;
-    double r1 = 0, r2 = 0, r3 = 0;
-    int readingNum = 0;
+    float dist1 = 0, dist2 = 0, dist3 = 0; //Three distance values entered for calibration
+    double r1 = 0, r2 = 0, r3 = 0; //Three ratios measured for calibration
+    int readingNum = 0; //Number of calibration values entered
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -35,6 +36,7 @@ public class CalibrateDialog extends DialogFragment {
                 .setNegativeButton(android.R.string.cancel, null)
                 .create();
 
+        //Using an on show listener to keep the positive button from automatically closing the dialog
         dialog.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override
             public void onShow(DialogInterface dialogInterface) {
@@ -51,8 +53,8 @@ public class CalibrateDialog extends DialogFragment {
                 assert btSpinner != null;
                 assert spinnerVal != null;
 
+                //This handler and runnable constantly refreshes the
                 final Handler handler = new Handler();
-                int btPosition = 0;
 
                 final Runnable refresh = new Runnable(){
                     @Override
@@ -66,6 +68,7 @@ public class CalibrateDialog extends DialogFragment {
 
                 spinnerVal.setVisibility(View.GONE);
 
+                //Initializing the spinner for selecting beacons
                 List<String> categories2 = new ArrayList<>();
                 if(BeaconManager.getmDevices() != null){
                     for(int i = 0; i < BeaconManager.getmDevices().size(); i++){
@@ -99,6 +102,7 @@ public class CalibrateDialog extends DialogFragment {
                     @Override
                     public void onClick(View view) {
                         Rssi rssi = BeaconManager.getRSSI(BeaconManager.getmDevices().valueAt(btSpinner.getSelectedItemPosition()).hashCode());
+                        //Records the distance and rssi to TxPower ratio for each calibration step
                         switch(readingNum) {
                             case 0:
                                 try {
@@ -107,6 +111,9 @@ public class CalibrateDialog extends DialogFragment {
                                     readingNum = 1;
                                     dialog.setTitle("Calibrate Second Point");
                                     distText.setText("");
+
+                                    //The spinnerVal textView replaces the spinner after the first calibration so that all calibrations
+                                    //are performed with the same beacon
                                     btSpinner.setVisibility(View.GONE);
                                     spinnerVal.setText(BeaconManager.getmDevices().valueAt(btSpinner.getSelectedItemPosition()).getAddress());
                                     spinnerVal.setVisibility(View.VISIBLE);
@@ -140,6 +147,8 @@ public class CalibrateDialog extends DialogFragment {
                                         break;
                                     }
                                     readingNum = 3;
+
+                                    //After the third calibration measurement the values are passed to the calibrater class and the dialog is closed
                                     dialog.setTitle("Done Calibrating");
                                     Calibrater.calibrate(dist1, dist2, dist3, r1, r2, r3);
                                     dialog.dismiss();

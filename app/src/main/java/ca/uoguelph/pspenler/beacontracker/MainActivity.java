@@ -57,6 +57,7 @@ public final class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
+
         BeaconManager.initialize(this);
         if(App.isFirstOpen()) {
             showInstructions();
@@ -204,6 +205,7 @@ public final class MainActivity extends AppCompatActivity {
         startActivityForResult(enableBtIntent, 1);
     }
 
+    //Requests location access for better beacon scanning
     @RequiresApi(api = Build.VERSION_CODES.M)
     public void requestLocation(){
         final Activity activity = this;
@@ -273,6 +275,7 @@ public final class MainActivity extends AppCompatActivity {
         super.onStop();
     }
 
+    //Starts the calibration dialog when the calibrate FAB is pressed
     public void calibrate(View view) {
         new CalibrateDialog().show(getFragmentManager(), "Calibrate Dialog");
     }
