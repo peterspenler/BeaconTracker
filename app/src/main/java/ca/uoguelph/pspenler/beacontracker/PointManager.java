@@ -24,7 +24,7 @@ class Point{
 
 public final class PointManager {
 
-    private static ArrayList<Point> points = new ArrayList<>(); //List of points
+    private static final ArrayList<Point> points = new ArrayList<>(); //List of points
     private static boolean canAddPoints = true; //Whether or not points can be added
 
     //These variables store the scaling factors to turn real X and Y values into virtual X and Y values
@@ -178,13 +178,11 @@ public final class PointManager {
         if (rssi == 0) {
             return -1.0; // if we cannot determine accuracy, return -1.
         }
-
         double ratio = ((double)rssi)*1.0/txPower;
         if (ratio < 1.0) {
             return Math.pow(ratio,10);
         }
         else {
-            //return  (0.89976)*Math.pow(ratio,7.7095) + 0.111;
             return  Calibrater.A()*Math.pow(ratio,Calibrater.B()) + Calibrater.C();
         }
     }

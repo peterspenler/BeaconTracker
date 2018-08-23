@@ -10,7 +10,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
@@ -27,6 +26,7 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public final class MainActivity extends AppCompatActivity {
 
@@ -65,7 +65,7 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     //Shows instructions for the app in a dialog
-    public void showInstructions(){
+    private void showInstructions(){
         AlertDialog dialog = new AlertDialog.Builder(this, R.style.Theme_AppCompat_Dialog_Alert)
                 .setTitle("BeaconTracker")
                 .setMessage("Welcome to BeaconTracker!\n\n" +
@@ -139,8 +139,8 @@ public final class MainActivity extends AppCompatActivity {
                     @Override
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                         Rssi rssi = BeaconManager.getRSSI(BeaconManager.getmDevices().valueAt(btSpinner.getSelectedItemPosition()).hashCode());
-                        rssiView.setText("RSSI: " + rssi.value());
-                        txpwrView.setText("TxPwr: " + rssi.txPower());
+                        rssiView.setText(getString(R.string.rssi_value, rssi.value()));
+                        txpwrView.setText(getString(R.string.tx_value, rssi.txPower()));
                     }
 
                     @Override
@@ -151,8 +151,8 @@ public final class MainActivity extends AppCompatActivity {
 
                 if(changing){
                     Point point = PointManager.getPoint(index);
-                    xText.setText(Float.toString(point.realX));
-                    yText.setText(Float.toString(point.realY));
+                    xText.setText(fmt(point.realX));
+                    yText.setText(fmt(point.realY));
                     int spinnerIndex = BeaconManager.indexFromHash(PointManager.getPoint(index).device);
                     if(spinnerIndex >= 0) {
                         btSpinner.setSelection(spinnerIndex);
@@ -278,5 +278,14 @@ public final class MainActivity extends AppCompatActivity {
     //Starts the calibration dialog when the calibrate FAB is pressed
     public void calibrate(View view) {
         new CalibrateDialog().show(getFragmentManager(), "Calibrate Dialog");
+    }
+
+    //Formats doubles/floats into strings without trailing zeros
+    public static String fmt(float d)
+    {
+        if(d == (long) d)
+            return String.format(Locale.CANADA,"%d",(long)d);
+        else
+            return Float.toString(d);
     }
 }

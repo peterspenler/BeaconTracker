@@ -22,25 +22,27 @@ import java.util.List;
 
 public class CalibrateDialog extends DialogFragment {
 
-    AlertDialog dialog;
-    float dist1 = 0, dist2 = 0, dist3 = 0; //Three distance values entered for calibration
-    double r1 = 0, r2 = 0, r3 = 0; //Three ratios measured for calibration
-    int readingNum = 0; //Number of calibration values entered
+    private AlertDialog dialog;
+    private float dist1 = 0, dist2 = 0, dist3 = 0; //Three distance values entered for calibration
+    private double r1 = 0, r2 = 0, r3 = 0; //Three ratios measured for calibration
+    private int readingNum = 0; //Number of calibration values entered
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         dialog = new AlertDialog.Builder(getActivity(), R.style.Theme_AppCompat_Dialog_Alert)
                 .setView(R.layout.dialog_calibrate)
                 .setTitle("Calibrate first point")
-                .setPositiveButton("Calibrate", null) //Set to null. We override the onclick
+                .setPositiveButton("Calibrate", null) //Listener is null, action added in OnShowListener
                 .setNegativeButton(android.R.string.cancel, null)
+                .setNeutralButton("Help", null)
                 .create();
 
         //Using an on show listener to keep the positive button from automatically closing the dialog
         dialog.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override
             public void onShow(DialogInterface dialogInterface) {
-                Button button = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                Button calibrateButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                Button helpButton = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
                 final EditText distText = dialog.findViewById(R.id.dialogDist);
                 final Spinner btSpinner = dialog.findViewById(R.id.calibrateSpinner);
                 final TextView spinnerVal = dialog.findViewById(R.id.spinnerVal);
@@ -60,7 +62,7 @@ public class CalibrateDialog extends DialogFragment {
                     @Override
                     public void run() {
                         Rssi rssi = BeaconManager.getRSSI(BeaconManager.getmDevices().valueAt(btSpinner.getSelectedItemPosition()).hashCode());
-                        rssiView.setText("RSSI: " + rssi.value());
+                        rssiView.setText(getString(R.string.rssi_value, rssi.value()));
                         handler.postDelayed(this, 1000);
                     }
                 };
@@ -85,8 +87,8 @@ public class CalibrateDialog extends DialogFragment {
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                         if(readingNum == 0) {
                             Rssi rssi = BeaconManager.getRSSI(BeaconManager.getmDevices().valueAt(btSpinner.getSelectedItemPosition()).hashCode());
-                            rssiView.setText("RSSI: " + rssi.value());
-                            txpwrView.setText("TxPwr: " + rssi.txPower());
+                            rssiView.setText(getString(R.string.rssi_value, rssi.value()));
+                            txpwrView.setText(getString(R.string.tx_value, rssi.value()));
                         } else{
                             Toast.makeText(App.getContext(), "All calibration measurements must be done with the same beacon", Toast.LENGTH_SHORT).show();
                         }
@@ -98,7 +100,7 @@ public class CalibrateDialog extends DialogFragment {
                     }
                 });
 
-                button.setOnClickListener(new View.OnClickListener() {
+                calibrateButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         Rssi rssi = BeaconManager.getRSSI(BeaconManager.getmDevices().valueAt(btSpinner.getSelectedItemPosition()).hashCode());
@@ -151,6 +153,7 @@ public class CalibrateDialog extends DialogFragment {
                                     //After the third calibration measurement the values are passed to the calibrater class and the dialog is closed
                                     dialog.setTitle("Done Calibrating");
                                     Calibrater.calibrate(dist1, dist2, dist3, r1, r2, r3);
+                                    handler.removeCallbacksAndMessages(null); //Clear any pending callbacks from the handler
                                     dialog.dismiss();
                                     Toast.makeText(App.getContext(), "App has been calibrated", Toast.LENGTH_SHORT).show();
                                 }catch (Exception e){
@@ -163,6 +166,19 @@ public class CalibrateDialog extends DialogFragment {
                             }
                         }
                     });
+                helpButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        new AlertDialog.Builder(getActivity(), R.style.Theme_AppCompat_Dialog_Alert)
+                                .setTitle("Calibration Help")
+                                .setMessage("In order to calibrate the app 3 measurements must be taken with the phone at 3 different distances from a single beacon.\n\n" +
+                                        "To get the first reading, enter the distance that the phone is from the beacon in meters and tap calibrate.\n\n" +
+                                        "Then move the phone to a new distance, enter that distance, and tap calibrate for each of the next two readings\n\n" +
+                                        "The app will then automatically use these readings to calibrate itself.")
+                                .setPositiveButton(android.R.string.ok, null)
+                                .create().show();
+                    }
+                });
             }
         });
 

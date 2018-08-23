@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">BeaconTracker</string>
+    <string name="TEST_RSSI">RSSI_VALUE</string>
+    <string name="TEST_TX">TX_VALUE</string>
+    <string name="real_x_hint">Real X position</string>
+    <string name="real_y_hint">Real Y position</string>
+    <string name="real_distance_hint">Real distance from beacon</string>
+    <string name="rssi_value">RSSI: %1$d</string>
+    <string name="tx_value">TxPower: %1$d</string>
 </resources>
