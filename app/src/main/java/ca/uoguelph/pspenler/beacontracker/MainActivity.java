@@ -117,6 +117,7 @@ public final class MainActivity extends AppCompatActivity {
                 final TextView rssiView = dialog.findViewById(R.id.rssiText);
                 final TextView txpwrView = dialog.findViewById(R.id.txpowerText);
 
+                //Avoids null pointer errors
                 assert xText != null;
                 assert yText != null;
                 assert rssiView != null;
@@ -175,7 +176,7 @@ public final class MainActivity extends AppCompatActivity {
                             if(changing){
                                 BluetoothDevice device = BeaconManager.getmDevices().valueAt(btSpinner.getSelectedItemPosition());
                                 result = PointManager.changePoint(Float.parseFloat(xText.getText().toString()), Float.parseFloat(yText.getText().toString()), device.hashCode(), index);
-                            }else{
+                            }else {
                                 BluetoothDevice device = BeaconManager.getmDevices().valueAt(btSpinner.getSelectedItemPosition());
                                 result = PointManager.addPoint(Float.parseFloat(xText.getText().toString()), Float.parseFloat(yText.getText().toString()), device.hashCode());
                             }
@@ -184,11 +185,13 @@ public final class MainActivity extends AppCompatActivity {
                                 Toast.makeText(App.getContext(), "Point added", Toast.LENGTH_SHORT).show();
                                 BeaconManager.resumeScan();
                                 dialog.dismiss();
-                            }else{
-                                Toast.makeText(App.getContext(), "Invalid values", Toast.LENGTH_SHORT).show();
                             }
                         }catch (NumberFormatException nfe){
-                            Toast.makeText(App.getContext(), "Values must be decimal numbers", Toast.LENGTH_SHORT).show();
+                            if((xText.getText().toString().equals("")) || (yText.getText().toString().equals(""))){
+                                Toast.makeText(App.getContext(), "Both X and Y values required", Toast.LENGTH_SHORT).show();
+                            }else {
+                                Toast.makeText(App.getContext(), "Values must be decimal numbers", Toast.LENGTH_SHORT).show();
+                            }
                         }catch (Exception e){
                             Toast.makeText(App.getContext(), "Error processing request", Toast.LENGTH_SHORT).show();
                         }

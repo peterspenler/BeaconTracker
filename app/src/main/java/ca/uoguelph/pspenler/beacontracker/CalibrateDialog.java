@@ -22,7 +22,7 @@ import java.util.List;
 
 public class CalibrateDialog extends DialogFragment {
 
-    private AlertDialog dialog;
+    private AlertDialog dialog; //Holds the dialog
     private float dist1 = 0, dist2 = 0, dist3 = 0; //Three distance values entered for calibration
     private double r1 = 0, r2 = 0, r3 = 0; //Three ratios measured for calibration
     private int readingNum = 0; //Number of calibration values entered
@@ -43,12 +43,14 @@ public class CalibrateDialog extends DialogFragment {
             public void onShow(DialogInterface dialogInterface) {
                 Button calibrateButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
                 Button helpButton = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+                Button cancelButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
                 final EditText distText = dialog.findViewById(R.id.dialogDist);
                 final Spinner btSpinner = dialog.findViewById(R.id.calibrateSpinner);
                 final TextView spinnerVal = dialog.findViewById(R.id.spinnerVal);
                 final TextView rssiView = dialog.findViewById(R.id.rssiText);
                 final TextView txpwrView = dialog.findViewById(R.id.txpowerText);
 
+                //Avoids null pointer errors
                 assert distText != null;
                 assert rssiView != null;
                 assert txpwrView != null;
@@ -166,6 +168,15 @@ public class CalibrateDialog extends DialogFragment {
                             }
                         }
                     });
+
+                cancelButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        handler.removeCallbacksAndMessages(null); //Clear any pending callbacks from the handler
+                        dialog.dismiss();
+                    }
+                });
+
                 helpButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {

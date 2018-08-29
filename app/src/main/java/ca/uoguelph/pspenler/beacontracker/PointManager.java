@@ -1,6 +1,7 @@
 package ca.uoguelph.pspenler.beacontracker;
 
 import android.util.SparseArray;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -49,6 +50,14 @@ public final class PointManager {
 
     //Adds point to the list
     public static boolean addPoint(float realX, float realY, int device){
+        if(deviceUsed(device)){
+            Toast.makeText(App.getContext(), "Beacon is already in use", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if(coordsUsed(realX, realY)){
+            Toast.makeText(App.getContext(), "Coordinates are already in use", Toast.LENGTH_SHORT).show();
+            return false;
+        }
         if(canAddPoints) {
             points.add(new Point(realX, realY, device));
             remapPoints(false);
@@ -80,9 +89,18 @@ public final class PointManager {
     }
 
     //Returns whether or not a bluetooth device has already been assigned to a point
-    public static boolean pointUsed(int hashcode){
+    private static boolean deviceUsed(int hashcode){
         for(int i = 0; i < points.size(); i++){
-            if(points.get(i).hashCode() == hashcode){
+            if(points.get(i).device == hashcode){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean coordsUsed(float x, float y){
+        for(int i = 0; i < points.size(); i++){
+            if((x == points.get(i).realX) && (y == points.get(i).realY)){
                 return true;
             }
         }
